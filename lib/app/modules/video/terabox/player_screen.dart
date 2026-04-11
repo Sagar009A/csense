@@ -119,13 +119,10 @@ class _TeraBoxPlayerScreenState extends State<TeraBoxPlayerScreen> {
   /// Pre-load rewarded + interstitial ads immediately with hardcoded IDs.
   /// Called from initState BEFORE loadAdSettings — ensures ads are ready fast,
   /// especially in deep-link case where AdService/AdManager may not be initialized.
+  /// Fire-and-forget: runs in parallel with video player initialization so the
+  /// user never waits on ads that are already loading in the background.
   void _preloadAdsWithDirectIds() {
-    // Initialize MobileAds SDK first, then load ads
-    MobileAds.instance.initialize().then((_) {
-      debugPrint('🎬 _preloadAds: MobileAds SDK initialized');
-    });
-
-    // Skip if premium (cached check)
+    // Skip if premium (cached check) — no SDK init, no ad loads
     SharedPreferences.getInstance().then((prefs) async {
       final cachedPremium = prefs.getBool('is_premium') ?? false;
       if (cachedPremium) {
@@ -133,10 +130,12 @@ class _TeraBoxPlayerScreenState extends State<TeraBoxPlayerScreen> {
         return;
       }
 
-      // Wait a moment for MobileAds to finish initializing
-      await Future.delayed(const Duration(milliseconds: 500));
+      // Chain ad loads AFTER MobileAds init completes — no arbitrary delay.
+      await MobileAds.instance.initialize();
+      if (!mounted) return;
+      debugPrint('🎬 _preloadAds: MobileAds SDK initialized');
 
-      // Pre-load rewarded ad
+      // Pre-load rewarded ad (primary)
       if (_downloadRewardedAd == null && !_isDownloadRewardedLoading) {
         _isDownloadRewardedLoading = true;
         final rewardedId = AdConfig.rewardedAdId;
@@ -158,7 +157,7 @@ class _TeraBoxPlayerScreenState extends State<TeraBoxPlayerScreen> {
         );
       }
 
-      // Pre-load interstitial ad
+      // Pre-load interstitial ad (fallback)
       final interstitialId = AdConfig.interstitialAdId;
       debugPrint(
         '🎬 _preloadAds: loading interstitial ad with $interstitialId',
@@ -839,7 +838,7 @@ class _TeraBoxPlayerScreenState extends State<TeraBoxPlayerScreen> {
         RewardedAd? ad;
         try {
           ad = await completer.future.timeout(
-            const Duration(seconds: 15),
+            const Duration(seconds: 4),
             onTimeout: () => null,
           );
         } catch (_) {
@@ -914,7 +913,7 @@ class _TeraBoxPlayerScreenState extends State<TeraBoxPlayerScreen> {
           InterstitialAd? interAd;
           try {
             interAd = await interLoadCompleter.future.timeout(
-              const Duration(seconds: 10),
+              const Duration(seconds: 4),
               onTimeout: () => null,
             );
           } catch (_) {

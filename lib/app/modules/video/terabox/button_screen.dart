@@ -98,6 +98,13 @@ class _TeraBoxButtonScreenState extends State<TeraBoxButtonScreen> {
 
   void loadBottomAd({bool useFallback = false}) {}
 
+  /// Mark ads as ready so the "Go to Video" button can unlock without
+  /// waiting for the full ad wait timer. Called from ad load callbacks.
+  void _markAdReady() {
+    if (!mounted || _adReadyOrTimeout) return;
+    setState(() => _adReadyOrTimeout = true);
+  }
+
   /// Load rewarded ad directly (no AdService dependency)
   void _loadDirectRewarded() {
     if (isPremiumUser || _isRewardedLoading || _directRewarded != null) return;
@@ -111,6 +118,8 @@ class _TeraBoxButtonScreenState extends State<TeraBoxButtonScreen> {
           _directRewarded = ad;
           _isRewardedLoading = false;
           debugPrint('✅ Direct rewarded ad loaded');
+          // Unlock button immediately — no need to wait for the 4s safety timer
+          _markAdReady();
         },
         onAdFailedToLoad: (error) {
           _isRewardedLoading = false;
@@ -134,6 +143,8 @@ class _TeraBoxButtonScreenState extends State<TeraBoxButtonScreen> {
           _directInterstitial = ad;
           _isInterstitialLoading = false;
           debugPrint('✅ Direct interstitial ad loaded');
+          // Unlock button immediately — no need to wait for the 4s safety timer
+          _markAdReady();
         },
         onAdFailedToLoad: (error) {
           _isInterstitialLoading = false;
@@ -181,21 +192,24 @@ class _TeraBoxButtonScreenState extends State<TeraBoxButtonScreen> {
       if (mounted) setState(() {});
     }
 
-    // Load ads DIRECTLY (no admin panel / AdService dependency) — instant start
+    // Load ads DIRECTLY (no admin panel / AdService dependency) — instant start.
+    // Fire-and-forget: do NOT await SDK init — video fetch must run in parallel.
     if (!isPremiumUser) {
-      // Initialize MobileAds SDK first (required before loading any ads)
-      // In deeplink flow, AdService may not be initialized yet
-      await MobileAds.instance.initialize();
-      debugPrint('🎬 MobileAds SDK initialized for deeplink flow');
-      loadTopAd();
-      loadBottomAd();
-      _loadDirectRewarded();
-      _loadDirectInterstitial();
+      // Start the 4-second safety cap immediately. If rewarded/interstitial
+      // loads before this fires, _markAdReady() will unlock the button early.
       _adWaitTimer?.cancel();
       _adWaitTimer = Timer(const Duration(seconds: 4), () {
         if (mounted && !_adReadyOrTimeout) {
           setState(() => _adReadyOrTimeout = true);
         }
+      });
+
+      // Kick off SDK init + ad loads without blocking the video fetch below.
+      MobileAds.instance.initialize().then((_) {
+        if (!mounted || isPremiumUser) return;
+        debugPrint('🎬 MobileAds SDK initialized for deeplink flow');
+        _loadDirectRewarded();
+        _loadDirectInterstitial();
       });
     }
 
@@ -1098,7 +1112,7 @@ class _TeraBoxButtonScreenState extends State<TeraBoxButtonScreen> {
                         }
 
                         Future.delayed(
-                          const Duration(seconds: 10),
+                          const Duration(seconds: 4),
                           () {
                             dismissAndNavigate();
                           },
