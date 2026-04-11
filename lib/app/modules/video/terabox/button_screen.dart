@@ -92,17 +92,11 @@ class _TeraBoxButtonScreenState extends State<TeraBoxButtonScreen> {
   // Cached SharedPreferences to avoid repeated getInstance() calls
   SharedPreferences? _prefs;
 
-  void loadTopAd({bool useFallback = false}) {
-    print("erererere=====${widget.shortCode}");
+  // Native ads are displayed via NativeAdWidget() directly in the build method.
+  // These stubs are kept for call-site compatibility; actual loading is self-managed.
+  void loadTopAd({bool useFallback = false}) {}
 
-    if (isPremiumUser || _isTopAdLoading || isTopAdLoaded) return;
-    _isTopAdLoading = true;
-  }
-
-  void loadBottomAd({bool useFallback = false}) {
-    if (isPremiumUser || _isBottomAdLoading || isBottomAdLoaded) return;
-    _isBottomAdLoading = true;
-  }
+  void loadBottomAd({bool useFallback = false}) {}
 
   /// Load rewarded ad directly (no AdService dependency)
   void _loadDirectRewarded() {
@@ -618,7 +612,6 @@ class _TeraBoxButtonScreenState extends State<TeraBoxButtonScreen> {
       }
 
       final originalUrl = videoInfo['original_url'].toString();
-      print("54545454-----${originalUrl}");
       final tera2Url = isPremiumUser
           ? "https://teraboxurll.in/admin_app/apis/tera3.php"
           : "https://teraboxurll.in/admin_app/apis/tera2.php";
@@ -636,15 +629,12 @@ class _TeraBoxButtonScreenState extends State<TeraBoxButtonScreen> {
           )
           .timeout(const Duration(seconds: 30));
 
-      print("erererer----${originalUrl}");
-
       if (response.statusCode == 200) {
         final resData = json.decode(response.body);
         debugPrint(
-          "erererer987897789 FULL RESPONSE ----  ${const JsonEncoder.withIndent('  ').convert(resData)}",
+          "TeraBox API response: ${const JsonEncoder.withIndent('  ').convert(resData)}",
           wrapWidth: 4096,
         );
-        print("erererer987897789   ----  ${resData['subtitle_url']}");
 
         // ============================================
         // HANDLE ALL RESPONSE FORMATS
@@ -1190,6 +1180,7 @@ class _TeraBoxButtonScreenState extends State<TeraBoxButtonScreen> {
                                     debugPrint(
                                       '🎬 Interstitial also failed: ${error.message}',
                                     );
+                                    dismissAndNavigate();
                                   },
                                 ),
                               );

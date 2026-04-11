@@ -82,8 +82,6 @@ class _TeraBoxPlayerScreenState extends State<TeraBoxPlayerScreen> {
   double _speedBeforeLongPress = 1.0;
   Timer? _rewindTimer;
 
-  bool isTopAdLoaded = false;
-
   bool hasTrackedView = false;
   int videoTimerSeconds = 10;
   int playerStatus = 0;
@@ -117,31 +115,6 @@ class _TeraBoxPlayerScreenState extends State<TeraBoxPlayerScreen> {
   int _currentSubtitleIndex = -1; // -1 = none
   String? _currentSubtitleText;
   String _currentQuality = 'Auto';
-
-  Future<void> loadTopAd() async {
-    if (isPremiumUser) {
-      isTopAdLoaded = false;
-      return;
-    }
-
-    final prefs = await SharedPreferences.getInstance();
-    final delaySeconds =
-        int.tryParse(prefs.getString('native_ad_delay') ?? '3') ?? 3;
-
-    await Future.delayed(Duration(seconds: delaySeconds));
-
-    if (!mounted || isPremiumUser) return;
-
-    final primaryAdId = AdManager.nativeId;
-    final fallbackAdId = AdManager.fallbackNativeId;
-    final adUnitId = primaryAdId.isNotEmpty ? primaryAdId : fallbackAdId;
-
-    if (adUnitId.isEmpty) return;
-  }
-
-  void _loadFallbackNativeAd(String fallbackAdId) {
-    if (isPremiumUser || !mounted) return;
-  }
 
   /// Pre-load rewarded + interstitial ads immediately with hardcoded IDs.
   /// Called from initState BEFORE loadAdSettings — ensures ads are ready fast,
@@ -213,7 +186,6 @@ class _TeraBoxPlayerScreenState extends State<TeraBoxPlayerScreen> {
     final prefs = await SharedPreferences.getInstance();
     await AdManager.configureFromPrefs();
 
-    final adStatus = prefs.getString('ad_status');
     final userIdString = prefs.getString('userId');
 
     if (userIdString != null) {
@@ -225,13 +197,8 @@ class _TeraBoxPlayerScreenState extends State<TeraBoxPlayerScreen> {
     isPremiumUser = PremiumManager.isPremiumUser;
 
     if (isPremiumUser) {
-      isTopAdLoaded = false;
       if (mounted) setState(() {});
       return;
-    }
-
-    if (adStatus != '0') {
-      loadTopAd();
     }
 
     if (!PremiumManager.isPremiumUser &&
