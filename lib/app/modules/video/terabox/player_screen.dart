@@ -116,71 +116,6 @@ class _TeraBoxPlayerScreenState extends State<TeraBoxPlayerScreen> {
   String? _currentSubtitleText;
   String _currentQuality = 'Auto';
 
-  /// Pre-load rewarded + interstitial ads immediately with hardcoded IDs.
-  /// Called from initState BEFORE loadAdSettings — ensures ads are ready fast,
-  /// especially in deep-link case where AdService/AdManager may not be initialized.
-  /// Fire-and-forget: runs in parallel with video player initialization so the
-  /// user never waits on ads that are already loading in the background.
-  void _preloadAdsWithDirectIds() {
-    // Skip if premium (cached check) — no SDK init, no ad loads
-    SharedPreferences.getInstance().then((prefs) async {
-      final cachedPremium = prefs.getBool('is_premium') ?? false;
-      if (cachedPremium) {
-        debugPrint('🎬 _preloadAds: user is premium, skipping');
-        return;
-      }
-
-      // Chain ad loads AFTER MobileAds init completes — no arbitrary delay.
-      await MobileAds.instance.initialize();
-      if (!mounted) return;
-      debugPrint('🎬 _preloadAds: MobileAds SDK initialized');
-
-      // Pre-load rewarded ad (primary)
-      if (_downloadRewardedAd == null && !_isDownloadRewardedLoading) {
-        _isDownloadRewardedLoading = true;
-        final rewardedId = AdConfig.rewardedAdId;
-        debugPrint('🎬 _preloadAds: loading rewarded ad with $rewardedId');
-        RewardedAd.load(
-          adUnitId: rewardedId,
-          request: const AdRequest(),
-          rewardedAdLoadCallback: RewardedAdLoadCallback(
-            onAdLoaded: (ad) {
-              _downloadRewardedAd = ad;
-              _isDownloadRewardedLoading = false;
-              debugPrint('🎬 _preloadAds: rewarded ad LOADED ✅');
-            },
-            onAdFailedToLoad: (err) {
-              _isDownloadRewardedLoading = false;
-              debugPrint('🎬 _preloadAds: rewarded ad FAILED: ${err.message}');
-            },
-          ),
-        );
-      }
-
-      // Pre-load interstitial ad (fallback)
-      final interstitialId = AdConfig.interstitialAdId;
-      debugPrint(
-        '🎬 _preloadAds: loading interstitial ad with $interstitialId',
-      );
-      InterstitialAd.load(
-        adUnitId: interstitialId,
-        request: const AdRequest(),
-        adLoadCallback: InterstitialAdLoadCallback(
-          onAdLoaded: (ad) {
-            debugPrint('🎬 _preloadAds: interstitial ad LOADED ✅');
-            // Store in AdManager for use across the app
-            AdManager.interstitialAd = ad;
-          },
-          onAdFailedToLoad: (err) {
-            debugPrint(
-              '🎬 _preloadAds: interstitial ad FAILED: ${err.message}',
-            );
-          },
-        ),
-      );
-    });
-  }
-
   Future<void> loadAdSettings() async {
     final prefs = await SharedPreferences.getInstance();
     await AdManager.configureFromPrefs();
@@ -227,10 +162,9 @@ class _TeraBoxPlayerScreenState extends State<TeraBoxPlayerScreen> {
 
     _recommendedVideosFuture = fetchVideos();
 
-    // Start loading rewarded + interstitial ads IMMEDIATELY with hardcoded IDs
-    // (don't wait for loadAdSettings / AdManager / AdService init)
-    _preloadAdsWithDirectIds();
-
+    // Rewarded ad for the Download button is loaded from loadAdSettings()
+    // via _loadDownloadRewardedAd(). Interstitial is loaded on-demand inside
+    // _handleDownload() only if rewarded fails — no parallel preload.
     loadAdSettings();
     _loadVideoTimer();
     _checkMaintenance();
