@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>768319681338-ps4uqbi2ie6f5i46f5agm179028gj39s.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.768319681338-ps4uqbi2ie6f5i46f5agm179028gj39s</string>
+	<key>ANDROID_CLIENT_ID</key>
+	<string>768319681338-7eddabbn0a4ck5nrg45hj2bldi2ljvpb.apps.googleusercontent.com</string>
+	<key>API_KEY</key>
+	<string>AIzaSyCze_w9D3JPrIQ7TPPIc6C23StsBtkEk8U</string>
+	<key>GCM_SENDER_ID</key>
+	<string>768319681338</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.chartsense.ai.app</string>
+	<key>PROJECT_ID</key>
+	<string>chartsense-ai-1060a</string>
+	<key>STORAGE_BUCKET</key>
+	<string>chartsense-ai-1060a.firebasestorage.app</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:768319681338:ios:8ee24e49faea62ad88d603</string>
+	<key>DATABASE_URL</key>
+	<string>https://chartsense-ai-1060a-default-rtdb.firebaseio.com</string>
+</dict>
+</plist>

@@ -1,0 +1,56 @@
+{
+  "project_info": {
+    "project_number": "768319681338",
+    "firebase_url": "https://chartsense-ai-1060a-default-rtdb.firebaseio.com",
+    "project_id": "chartsense-ai-1060a",
+    "storage_bucket": "chartsense-ai-1060a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:768319681338:android:313c2a09d42cd86388d603",
+        "android_client_info": {
+          "package_name": "com.chartsense.ai.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "768319681338-7eddabbn0a4ck5nrg45hj2bldi2ljvpb.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.chartsense.ai.app",
+            "certificate_hash": "ec0e40a4fd1fd7d531d78230566375f954a22057"
+          }
+        },
+        {
+          "client_id": "768319681338-n9dpt4f9ujlocu16b2qgg1j6r2h00akd.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.chartsense.ai.app",
+            "certificate_hash": "736572355438e62531233a93f3ed0edfd6b5a923"
+          }
+        },
+        {
+          "client_id": "768319681338-b3co575vr2h2uc6e9jfbklee864723a1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBHR6TQkaFI4dco2GDeTVoQ7m1luCsfKFA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "768319681338-b3co575vr2h2uc6e9jfbklee864723a1.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
