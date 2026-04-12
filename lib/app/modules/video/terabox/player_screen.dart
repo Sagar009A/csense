@@ -106,6 +106,10 @@ class _TeraBoxPlayerScreenState extends State<TeraBoxPlayerScreen> {
 
   Timer? adRefreshTimer;
 
+  // Cached SharedPreferences — initialized once in initState, reused everywhere
+  // to avoid repeated platform-channel round-trips that can contribute to ANRs.
+  SharedPreferences? _prefs;
+
   // Cache the recommended videos future to prevent re-fetching on every rebuild
   late Future<List<Video>> _recommendedVideosFuture;
 
@@ -117,7 +121,8 @@ class _TeraBoxPlayerScreenState extends State<TeraBoxPlayerScreen> {
   String _currentQuality = 'Auto';
 
   Future<void> loadAdSettings() async {
-    final prefs = await SharedPreferences.getInstance();
+    _prefs ??= await SharedPreferences.getInstance();
+    final prefs = _prefs!;
     await AdManager.configureFromPrefs();
 
     final userIdString = prefs.getString('userId');
@@ -142,17 +147,16 @@ class _TeraBoxPlayerScreenState extends State<TeraBoxPlayerScreen> {
   }
 
   Future<void> _loadVideoTimer() async {
-    final prefs = await SharedPreferences.getInstance();
+    _prefs ??= await SharedPreferences.getInstance();
     videoTimerSeconds =
-        int.tryParse(prefs.getString('video_timer') ?? '10') ?? 10;
+        int.tryParse(_prefs!.getString('video_timer') ?? '10') ?? 10;
   }
 
   Future<void> _checkMaintenance() async {
-    final prefs = await SharedPreferences.getInstance();
-    final status = int.tryParse(prefs.getString('player_status') ?? '0') ?? 0;
-    setState(() {
-      playerStatus = status;
-    });
+    _prefs ??= await SharedPreferences.getInstance();
+    final status =
+        int.tryParse(_prefs!.getString('player_status') ?? '0') ?? 0;
+    if (mounted) setState(() => playerStatus = status);
   }
 
   @override
@@ -162,12 +166,16 @@ class _TeraBoxPlayerScreenState extends State<TeraBoxPlayerScreen> {
 
     _recommendedVideosFuture = fetchVideos();
 
-    // Rewarded ad for the Download button is loaded from loadAdSettings()
-    // via _loadDownloadRewardedAd(). Interstitial is loaded on-demand inside
-    // _handleDownload() only if rewarded fails — no parallel preload.
-    loadAdSettings();
-    _loadVideoTimer();
-    _checkMaintenance();
+    // Pre-cache SharedPreferences once so all subsequent calls (save progress,
+    // timers, maintenance check) don't hit the platform channel every time.
+    SharedPreferences.getInstance().then((prefs) {
+      _prefs = prefs;
+      if (!mounted) return;
+      // Now that prefs is ready, kick off everything that needs it.
+      loadAdSettings();
+      _loadVideoTimer();
+      _checkMaintenance();
+    });
 
     // Native ad refresh disabled — load once, don't auto-refresh
     // adRefreshTimer = Timer.periodic(const Duration(seconds: 100), (timer) {
@@ -425,14 +433,15 @@ class _TeraBoxPlayerScreenState extends State<TeraBoxPlayerScreen> {
   }
 
   Future<void> _saveWatchProgress(String shortCode, Duration position) async {
-    final prefs = await SharedPreferences.getInstance();
-    prefs.setInt('watch_$shortCode', position.inSeconds);
+    // Use cached prefs — this runs every 5 seconds, avoid getInstance() each time
+    _prefs ??= await SharedPreferences.getInstance();
+    _prefs!.setInt('watch_$shortCode', position.inSeconds);
   }
 
   /// Check for saved position and show resume dialog if applicable.
   void _checkAndShowResumeDialog() async {
-    final prefs = await SharedPreferences.getInstance();
-    final savedSeconds = prefs.getInt('watch_${widget.shortCode}') ?? 0;
+    _prefs ??= await SharedPreferences.getInstance();
+    final savedSeconds = _prefs!.getInt('watch_${widget.shortCode}') ?? 0;
 
     // Only show if saved position is meaningful (> 10 seconds)
     if (savedSeconds <= 10) return;
@@ -453,6 +462,7 @@ class _TeraBoxPlayerScreenState extends State<TeraBoxPlayerScreen> {
   }
 
   void _showResumeDialog(int savedSeconds) {
+    if (!mounted) return;
     final minutes = savedSeconds ~/ 60;
     final seconds = savedSeconds % 60;
     final timeStr =
@@ -527,9 +537,9 @@ class _TeraBoxPlayerScreenState extends State<TeraBoxPlayerScreen> {
   }
 
   Future<void> _trackVideoPlay(String shortCode) async {
-    final prefs = await SharedPreferences.getInstance();
+    _prefs ??= await SharedPreferences.getInstance();
     final key = 'last_tracked_$shortCode';
-    final lastTracked = prefs.getInt(key);
+    final lastTracked = _prefs!.getInt(key);
     final now = DateTime.now().millisecondsSinceEpoch;
 
     if (lastTracked != null && now - lastTracked < 24 * 60 * 60 * 1000) return;
@@ -543,7 +553,7 @@ class _TeraBoxPlayerScreenState extends State<TeraBoxPlayerScreen> {
       );
 
       if (response.statusCode == 200) {
-        prefs.setInt(key, now);
+        _prefs!.setInt(key, now);
       }
     } catch (e) {
       debugPrint("Error tracking video play: $e");
@@ -566,6 +576,7 @@ class _TeraBoxPlayerScreenState extends State<TeraBoxPlayerScreen> {
   }
 
   void _showMaintenancePopup() {
+    if (!mounted) return;
     showDialog(
       context: context,
       barrierDismissible: true,
@@ -2666,16 +2677,28 @@ Future<List<Video>> fetchVideos() async {
   try {
     const url =
         'https://teraboxurll.in/api/recommended.php?EczOX0jbqbizIZi7a3RpJtPo&limit=5';
-    final response = await http.get(Uri.parse(url));
+    final response =
+        await http.get(Uri.parse(url)).timeout(const Duration(seconds: 10));
 
     if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      final List videosJson = data['data']['videos'];
-      return videosJson.map((json) => Video.fromJson(json)).toList();
+      final body = response.body.trim();
+      if (body.isEmpty) return [];
+
+      final dynamic decoded = json.decode(body);
+      if (decoded is! Map) return [];
+
+      final dynamic videosJson = decoded['data']?['videos'];
+      if (videosJson is! List) return [];
+
+      return videosJson
+          .whereType<Map<String, dynamic>>()
+          .map((v) => Video.fromJson(v))
+          .toList();
     } else {
       return [];
     }
   } catch (e) {
+    debugPrint('fetchVideos error: $e');
     return [];
   }
 }
@@ -2699,12 +2722,12 @@ class Video {
 
   factory Video.fromJson(Map<String, dynamic> json) {
     return Video(
-      id: json['id'],
-      shortCode: json['short_code'],
-      title: json['title'],
-      thumbnailUrl: json['thumbnail_url'],
-      views: json['views'],
-      watchUrl: json['watch_url'],
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      shortCode: json['short_code']?.toString() ?? '',
+      title: json['title']?.toString() ?? 'Untitled',
+      thumbnailUrl: json['thumbnail_url']?.toString(),
+      views: (json['views'] as num?)?.toInt() ?? 0,
+      watchUrl: json['watch_url']?.toString() ?? '',
     );
   }
 }

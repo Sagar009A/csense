@@ -592,7 +592,18 @@ class _TeraBoxButtonScreenState extends State<TeraBoxButtonScreen> {
         return const _VideoFetchResult(error: "Failed to fetch video info");
       }
 
-      final trackData = json.decode(trackResponse.body);
+      final trackBody = trackResponse.body.trim();
+      if (trackBody.isEmpty) {
+        return const _VideoFetchResult(error: "Empty response from server");
+      }
+
+      Map<String, dynamic> trackData;
+      try {
+        trackData = json.decode(trackBody) as Map<String, dynamic>;
+      } catch (_) {
+        return const _VideoFetchResult(error: "Invalid response from server");
+      }
+
       final videoInfo = trackData['data'];
 
       if (videoInfo == null ||
@@ -620,7 +631,16 @@ class _TeraBoxButtonScreenState extends State<TeraBoxButtonScreen> {
           .timeout(const Duration(seconds: 30));
 
       if (response.statusCode == 200) {
-        final resData = json.decode(response.body);
+        final resBody = response.body.trim();
+        if (resBody.isEmpty) {
+          return const _VideoFetchResult(error: "Empty response from stream API");
+        }
+        final Map<String, dynamic> resData;
+        try {
+          resData = json.decode(resBody) as Map<String, dynamic>;
+        } catch (_) {
+          return const _VideoFetchResult(error: "Invalid stream API response");
+        }
         debugPrint(
           "TeraBox API response: ${const JsonEncoder.withIndent('  ').convert(resData)}",
           wrapWidth: 4096,

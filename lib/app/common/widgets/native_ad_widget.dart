@@ -217,6 +217,9 @@ class _NativeAdWidgetState extends State<NativeAdWidget> {
       return const SizedBox.shrink();
     }
 
+    // NOTE: ClipRRect removed intentionally — clipping the AdWidget clips
+    // Google's AdChoices overlay, which prevents its close/report buttons from
+    // receiving touch events. Border radius is applied via the container only.
     return Container(
       margin: EdgeInsets.symmetric(vertical: 8.h),
       decoration: BoxDecoration(
@@ -230,13 +233,10 @@ class _NativeAdWidgetState extends State<NativeAdWidget> {
           ),
         ],
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(AdConfig.nativeCornerRadius.r),
-        child: SizedBox(
-          height: 350.h,
-          width: double.infinity,
-          child: AdWidget(ad: _nativeAd!),
-        ),
+      child: SizedBox(
+        height: 350.h,
+        width: double.infinity,
+        child: AdWidget(ad: _nativeAd!),
       ),
     );
   }
