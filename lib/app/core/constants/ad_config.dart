@@ -39,7 +39,8 @@ class AdConfig {
   // ═══════════════════════════════════════════════════════════════════════════
   //                              AD UNIT IDs
   // ═══════════════════════════════════════════════════════════════════════════
-  // App ID: ca-app-pub-5601247182612981~3175984056 (set in AndroidManifest & Info.plist)
+  // Android App ID: ca-app-pub-5601247182612981~3175984056 (set in AndroidManifest.xml)
+  // iOS App ID:     ca-app-pub-5601247182612981~9289706503 (set in Info.plist)
   // Production Ad Unit IDs - ChartSense AI
 
   static String _bannerAdId = 'ca-app-pub-5601247182612981/2201893287';
@@ -47,18 +48,18 @@ class AdConfig {
   static String get bannerAdId {
     if (kDebugMode) return _testBannerId;
     if (Platform.isIOS) {
-      return 'ca-app-pub-5601247182612981/2201893287'; // iOS Production ID
+      return 'ca-app-pub-5601247182612981/9404781216'; // iOS Production ID
     }
     if (_bannerAdId.isNotEmpty) return _bannerAdId;
     return _testBannerId; // Android Test ID fallback
   }
 
-  static String _nativeAdId = 'ca-app-pub-5601247182612981/1679149107';
+  static String _nativeAdId = 'ca-app-pub-5601247182612981/1035985340';
   /// Native Ad Unit ID
   static String get nativeAdId {
     if (kDebugMode) return _testNativeId;
     if (Platform.isIOS) {
-      return 'ca-app-pub-5601247182612981/1679149107'; // iOS Production ID
+      return 'ca-app-pub-5601247182612981/8762617538'; // iOS Production ID
     }
     if (_nativeAdId.isNotEmpty) return _nativeAdId;
     return _testNativeId; // Android Test ID fallback
@@ -69,7 +70,7 @@ class AdConfig {
   static String get interstitialAdId {
     if (kDebugMode) return _testInterstitialId;
     if (Platform.isIOS) {
-      return 'ca-app-pub-5601247182612981/2473356029'; // iOS Production ID
+      return 'ca-app-pub-5601247182612981/6307844580'; // iOS Production ID
     }
     if (_interstitialAdId.isNotEmpty) return _interstitialAdId;
     return _testInterstitialId; // Android Test ID fallback
@@ -80,7 +81,7 @@ class AdConfig {
   static String get rewardedAdId {
     if (kDebugMode) return _testRewardedId;
     if (Platform.isIOS) {
-      return 'ca-app-pub-5601247182612981/6004138004'; // iOS Production ID
+      return 'ca-app-pub-5601247182612981/5781706331'; // iOS Production ID
     }
     if (_rewardedAdId.isNotEmpty) return _rewardedAdId;
     return _testRewardedId; // Android Test ID fallback
