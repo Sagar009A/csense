@@ -36,8 +36,8 @@ class AdService extends GetxService {
   final RxBool isNativeAdLoaded = false.obs;
   final RxBool isLoadingNativeAd = false.obs;
   int _nativeAdRetryAttempt = 0;
-  static const int _maxNativeAdsPool = 5;
-  static const int _minNativeAdsPool = 2;
+  static const int _maxNativeAdsPool = 3;
+  static const int _minNativeAdsPool = 1;
   bool _isLoadingNativeAd = false;
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -48,8 +48,8 @@ class AdService extends GetxService {
   final RxBool isLoadingInterstitialAd = false.obs;
   DateTime? _lastInterstitialTime;
   int _interstitialAdRetryAttempt = 0;
-  static const int _maxInterstitialAdsPool = 5;
-  static const int _minInterstitialAdsPool = 2;
+  static const int _maxInterstitialAdsPool = 2;
+  static const int _minInterstitialAdsPool = 1;
   bool _isLoadingInterstitialAd = false;
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -59,8 +59,8 @@ class AdService extends GetxService {
   final RxBool isRewardedAdLoaded = false.obs;
   final RxBool isLoadingRewardedAd = false.obs;
   int _rewardedAdRetryAttempt = 0;
-  static const int _maxRewardedAdsPool = 5; // Maximum ads to preload
-  static const int _minRewardedAdsPool = 2; // Minimum ads to maintain
+  static const int _maxRewardedAdsPool = 2; // Maximum ads to preload
+  static const int _minRewardedAdsPool = 1; // Minimum ads to maintain
   bool _isLoadingRewardedAd = false;
 
   // ═══════════════════════════════════════════════════════════════════════════

@@ -2,6 +2,8 @@
 /// Displays native ad with shimmer loading and theme support
 library;
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
@@ -25,12 +27,14 @@ class _NativeAdWidgetState extends State<NativeAdWidget> {
   bool _hasError = false;
   bool _shouldShowAds = true; // default to showing ads
   Worker? _adVisibilityWorker;
+  Worker? _poolAdWorker;
+  Timer? _poolPollTimer;
 
   @override
   void initState() {
     super.initState();
     if (Get.isRegistered<AdService>()) {
-      // Normal flow: AdService already initialized, load ad immediately
+      // Normal flow: AdService already initialized, consume ad from pool
       _setupAdVisibilityListener();
       _loadAd();
     } else {
@@ -45,7 +49,6 @@ class _NativeAdWidgetState extends State<NativeAdWidget> {
       if (!mounted) return;
       if (Get.isRegistered<AdService>()) {
         _setupAdVisibilityListener();
-        // Now MobileAds is initialized, safe to load ad
         _loadAd();
       } else {
         _waitForAdService();
@@ -72,12 +75,73 @@ class _NativeAdWidgetState extends State<NativeAdWidget> {
       return;
     }
 
+    // Try to consume a pre-loaded native ad from AdService pool first.
+    // This avoids issuing a new NativeAd request on every widget mount.
+    if (Get.isRegistered<AdService>()) {
+      _consumeFromPool();
+    } else {
+      // Deeplink cold start fallback: load directly (AdService not available)
+      final isDark = Theme.of(Get.context!).brightness == Brightness.dark;
+      _loadNewAd(isDark);
+    }
+  }
+
+  /// Pop a ready native ad from AdService pool. If the pool is empty, subscribe
+  /// to the pool's loaded-state observable and consume the next one that arrives.
+  void _consumeFromPool() {
+    final adService = AdService.to;
     final isDark = Theme.of(Get.context!).brightness == Brightness.dark;
-    _loadNewAd(isDark);
+    final pooled = adService.getNativeAdSync(isDarkMode: isDark);
+    if (pooled != null) {
+      debugPrint('NativeAdWidget: Consumed native ad from pool');
+      if (mounted) {
+        setState(() {
+          _nativeAd = pooled;
+          _isLoaded = true;
+          _isLoading = false;
+          _hasError = false;
+        });
+      }
+      return;
+    }
+
+    // Pool empty — wait for the pool to refill (AdService is already loading).
+    debugPrint('NativeAdWidget: Pool empty, waiting for refill...');
+    _poolAdWorker?.dispose();
+    _poolAdWorker = ever(adService.isNativeAdLoaded, (bool loaded) {
+      if (!mounted || _nativeAd != null) return;
+      if (loaded) {
+        final ad = adService.getNativeAdSync(isDarkMode: isDark);
+        if (ad != null) {
+          _poolAdWorker?.dispose();
+          _poolAdWorker = null;
+          _poolPollTimer?.cancel();
+          _poolPollTimer = null;
+          setState(() {
+            _nativeAd = ad;
+            _isLoaded = true;
+            _isLoading = false;
+            _hasError = false;
+          });
+        }
+      }
+    });
+
+    // Safety timeout: if pool never fills within 8s, stop waiting and hide.
+    _poolPollTimer?.cancel();
+    _poolPollTimer = Timer(const Duration(seconds: 8), () {
+      if (!mounted || _nativeAd != null) return;
+      _poolAdWorker?.dispose();
+      _poolAdWorker = null;
+      setState(() {
+        _isLoading = false;
+        _hasError = true;
+      });
+    });
   }
 
   void _loadNewAd(bool isDark) {
-    debugPrint('NativeAdWidget: Loading native ad...');
+    debugPrint('NativeAdWidget: Loading native ad directly (no pool)...');
 
     _nativeAd = NativeAd(
       adUnitId: AdConfig.nativeAdId,
@@ -131,6 +195,8 @@ class _NativeAdWidgetState extends State<NativeAdWidget> {
   @override
   void dispose() {
     _adVisibilityWorker?.dispose();
+    _poolAdWorker?.dispose();
+    _poolPollTimer?.cancel();
     _nativeAd?.dispose();
     _nativeAd = null;
     super.dispose();

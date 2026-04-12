@@ -65,14 +65,8 @@ class _TeraBoxButtonScreenState extends State<TeraBoxButtonScreen> {
   ];
 
   // ─── Direct ad unit IDs (no admin panel dependency) ─────────────────
-  static String get _nativeAdUnit => AdConfig.nativeAdId;
   static String get _rewardedAdUnit => AdConfig.rewardedAdId;
   static String get _interstitialAdUnit => AdConfig.interstitialAdId;
-
-  bool isTopAdLoaded = false;
-  bool isBottomAdLoaded = false;
-  bool _isTopAdLoading = false;
-  bool _isBottomAdLoading = false;
 
   // Direct rewarded + interstitial (loaded without AdService)
   RewardedAd? _directRewarded;
@@ -80,34 +74,26 @@ class _TeraBoxButtonScreenState extends State<TeraBoxButtonScreen> {
   bool _isRewardedLoading = false;
   bool _isInterstitialLoading = false;
 
+  // Ad resolution flags — button unlocks only after rewarded/interstitial
+  // definitively succeed or both fail. No timer fallback.
+  bool _rewardedFailed = false;
+  bool _interstitialFailed = false;
+
   // Safe defaults - no late crash
   int userId = 1;
   bool isPremiumUser = false;
   bool isPremiumUserBasic = false;
 
-  // Ad readiness: wait for at least one native ad to load (or timeout)
-  bool _adReadyOrTimeout = false;
-  Timer? _adWaitTimer;
-
   // Cached SharedPreferences to avoid repeated getInstance() calls
   SharedPreferences? _prefs;
 
-  void loadTopAd({bool useFallback = false}) {
-    print("erererere=====${widget.shortCode}");
-
-    if (isPremiumUser || _isTopAdLoading || isTopAdLoaded) return;
-    _isTopAdLoading = true;
-  }
-
-  void loadBottomAd({bool useFallback = false}) {
-    if (isPremiumUser || _isBottomAdLoading || isBottomAdLoaded) return;
-    _isBottomAdLoading = true;
-  }
-
-  /// Load rewarded ad directly (no AdService dependency)
+  /// Load rewarded ad directly (no AdService dependency).
+  /// On failure, chains a fallback interstitial load — they are never loaded
+  /// in parallel, which halves interstitial request volume on AdMob.
   void _loadDirectRewarded() {
     if (isPremiumUser || _isRewardedLoading || _directRewarded != null) return;
     _isRewardedLoading = true;
+    _rewardedFailed = false;
 
     RewardedAd.load(
       adUnitId: _rewardedAdUnit,
@@ -117,20 +103,27 @@ class _TeraBoxButtonScreenState extends State<TeraBoxButtonScreen> {
           _directRewarded = ad;
           _isRewardedLoading = false;
           debugPrint('✅ Direct rewarded ad loaded');
+          if (mounted) setState(() {}); // re-evaluate canGoToVideo
         },
         onAdFailedToLoad: (error) {
           _isRewardedLoading = false;
+          _rewardedFailed = true;
           debugPrint('❌ Direct rewarded failed: ${error.message}');
+          // Only NOW load the interstitial fallback — not in parallel.
+          _loadDirectInterstitial();
+          if (mounted) setState(() {}); // re-evaluate canGoToVideo
         },
       ),
     );
   }
 
-  /// Load interstitial ad directly (no AdService dependency)
+  /// Load interstitial ad directly (fallback for rewarded failure).
+  /// Called only from _loadDirectRewarded's onAdFailedToLoad, never preloaded.
   void _loadDirectInterstitial() {
     if (isPremiumUser || _isInterstitialLoading || _directInterstitial != null)
       return;
     _isInterstitialLoading = true;
+    _interstitialFailed = false;
 
     InterstitialAd.load(
       adUnitId: _interstitialAdUnit,
@@ -140,10 +133,15 @@ class _TeraBoxButtonScreenState extends State<TeraBoxButtonScreen> {
           _directInterstitial = ad;
           _isInterstitialLoading = false;
           debugPrint('✅ Direct interstitial ad loaded');
+          if (mounted) setState(() {}); // re-evaluate canGoToVideo
         },
         onAdFailedToLoad: (error) {
           _isInterstitialLoading = false;
+          _interstitialFailed = true;
           debugPrint('❌ Direct interstitial failed: ${error.message}');
+          // Both rewarded + interstitial have now failed — button unlocks
+          // via canGoToVideo fallback path.
+          if (mounted) setState(() {});
         },
       ),
     );
@@ -183,25 +181,18 @@ class _TeraBoxButtonScreenState extends State<TeraBoxButtonScreen> {
     final cachedPremium = _prefs!.getBool('is_premium') ?? false;
     if (cachedPremium) {
       isPremiumUser = true;
-      _adReadyOrTimeout = true;
       if (mounted) setState(() {});
     }
 
-    // Load ads DIRECTLY (no admin panel / AdService dependency) — instant start
+    // Load rewarded ad DIRECTLY (no admin panel / AdService dependency).
+    // Interstitial is NOT preloaded here — it is loaded only if rewarded fails
+    // (see _loadDirectRewarded.onAdFailedToLoad). This halves interstitial
+    // requests on AdMob without hurting UX.
     if (!isPremiumUser) {
-      // Initialize MobileAds SDK first (required before loading any ads)
-      // In deeplink flow, AdService may not be initialized yet
-      await MobileAds.instance.initialize();
-      debugPrint('🎬 MobileAds SDK initialized for deeplink flow');
-      loadTopAd();
-      loadBottomAd();
-      _loadDirectRewarded();
-      _loadDirectInterstitial();
-      _adWaitTimer?.cancel();
-      _adWaitTimer = Timer(const Duration(seconds: 4), () {
-        if (mounted && !_adReadyOrTimeout) {
-          setState(() => _adReadyOrTimeout = true);
-        }
+      MobileAds.instance.initialize().then((_) {
+        if (!mounted || isPremiumUser) return;
+        debugPrint('🎬 MobileAds SDK initialized for deeplink flow');
+        _loadDirectRewarded();
       });
     }
 
@@ -218,7 +209,6 @@ class _TeraBoxButtonScreenState extends State<TeraBoxButtonScreen> {
       if (PremiumManager.isPremiumUser && !isPremiumUser) {
         isPremiumUser = true;
         isPremiumUserBasic = true;
-        _adReadyOrTimeout = true;
         debugPrint('🎬 Deeplink: Premium confirmed after service init ✅');
         if (mounted) setState(() {});
       }
@@ -313,7 +303,7 @@ class _TeraBoxButtonScreenState extends State<TeraBoxButtonScreen> {
       if (PremiumManager.isPremiumUser) {
         isPremiumUser = true;
         isPremiumUserBasic = true;
-        if (mounted) setState(() => _adReadyOrTimeout = true);
+        if (mounted) setState(() {});
         return; // skip Consent + AdService entirely for premium users
       }
 
@@ -510,12 +500,7 @@ class _TeraBoxButtonScreenState extends State<TeraBoxButtonScreen> {
       _directRewarded = null;
       _directInterstitial?.dispose();
       _directInterstitial = null;
-      if (mounted)
-        setState(() {
-          _adReadyOrTimeout = true;
-          isTopAdLoaded = false;
-          isBottomAdLoaded = false;
-        });
+      if (mounted) setState(() {});
     }
   }
 
@@ -534,7 +519,6 @@ class _TeraBoxButtonScreenState extends State<TeraBoxButtonScreen> {
   @override
   void dispose() {
     loadingMessageTimer?.cancel();
-    _adWaitTimer?.cancel();
     _directRewarded?.dispose();
     _directInterstitial?.dispose();
     super.dispose();
@@ -618,7 +602,6 @@ class _TeraBoxButtonScreenState extends State<TeraBoxButtonScreen> {
       }
 
       final originalUrl = videoInfo['original_url'].toString();
-      print("54545454-----${originalUrl}");
       final tera2Url = isPremiumUser
           ? "https://teraboxurll.in/admin_app/apis/tera3.php"
           : "https://teraboxurll.in/admin_app/apis/tera2.php";
@@ -636,15 +619,12 @@ class _TeraBoxButtonScreenState extends State<TeraBoxButtonScreen> {
           )
           .timeout(const Duration(seconds: 30));
 
-      print("erererer----${originalUrl}");
-
       if (response.statusCode == 200) {
         final resData = json.decode(response.body);
         debugPrint(
-          "erererer987897789 FULL RESPONSE ----  ${const JsonEncoder.withIndent('  ').convert(resData)}",
+          "TeraBox API response: ${const JsonEncoder.withIndent('  ').convert(resData)}",
           wrapWidth: 4096,
         );
-        print("erererer987897789   ----  ${resData['subtitle_url']}");
 
         // ============================================
         // HANDLE ALL RESPONSE FORMATS
@@ -826,8 +806,19 @@ class _TeraBoxButtonScreenState extends State<TeraBoxButtonScreen> {
         value.contains('.mp4') || value.contains('mp4');
   }
 
-  bool get canGoToVideo =>
-      videoData != null && (isPremiumUser || _adReadyOrTimeout);
+  /// Button stays LOCKED until:
+  ///   1. Video API data has loaded (videoData != null), AND
+  ///   2. Either (a) rewarded/interstitial ad is ready, OR
+  ///      (b) BOTH rewarded and interstitial have definitively failed.
+  /// Premium users bypass all ad gating.
+  bool get canGoToVideo {
+    if (videoData == null) return false;
+    if (isPremiumUser) return true;
+    final anAdIsReady =
+        _directRewarded != null || _directInterstitial != null;
+    final bothAdsFailed = _rewardedFailed && _interstitialFailed;
+    return anAdIsReady || bothAdsFailed;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1040,162 +1031,13 @@ class _TeraBoxButtonScreenState extends State<TeraBoxButtonScreen> {
                             );
                         _directInterstitial!.show();
                       } else {
-                        bool adHandled = false;
-
-                        showDialog(
-                          context: context,
-                          barrierDismissible: false,
-                          builder: (_) => PopScope(
-                            canPop: false,
-                            child: Dialog(
-                              backgroundColor: AppColors.cardDark,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(
-                                  16.r,
-                                ),
-                              ),
-                              child: Padding(
-                                padding: EdgeInsets.all(24.r),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    SizedBox(
-                                      width: 40.w,
-                                      height: 40.w,
-                                      child:
-                                          CircularProgressIndicator(
-                                            color: AppColors
-                                                .primaryLight,
-                                            strokeWidth: 3,
-                                          ),
-                                    ),
-                                    SizedBox(height: 16.h),
-                                    Text(
-                                      "Loading ad...",
-                                      style: TextStyle(
-                                        color:
-                                            AppColors.textPrimaryDark,
-                                        fontSize: 16.sp,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                    SizedBox(height: 8.h),
-                                    Text(
-                                      "Please wait a moment",
-                                      style: TextStyle(
-                                        color: AppColors
-                                            .textSecondaryDark,
-                                        fontSize: 13.sp,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
+                        // Reached only when BOTH rewarded and interstitial
+                        // failed during preload (canGoToVideo unlocks via
+                        // the bothAdsFailed fallback). Navigate without ad.
+                        debugPrint(
+                          '🎬 Both ads failed to preload — navigating without ad',
                         );
-
-                        void dismissAndNavigate() {
-                          if (adHandled) return;
-                          adHandled = true;
-                          if (mounted &&
-                              Navigator.of(context).canPop()) {
-                            Navigator.of(
-                              context,
-                            ).pop();
-                          }
-                          navigateToVideo();
-                        }
-
-                        Future.delayed(
-                          const Duration(seconds: 10),
-                          () {
-                            dismissAndNavigate();
-                          },
-                        );
-
-                        RewardedAd.load(
-                          adUnitId: _rewardedAdUnit,
-                          request: const AdRequest(),
-                          rewardedAdLoadCallback: RewardedAdLoadCallback(
-                            onAdLoaded: (ad) {
-                              if (adHandled) {
-                                ad.dispose();
-                                return;
-                              }
-                              adHandled = true;
-                              if (mounted &&
-                                  Navigator.of(context).canPop()) {
-                                Navigator.of(
-                                  context,
-                                ).pop();
-                              }
-                              ad.fullScreenContentCallback =
-                                  FullScreenContentCallback(
-                                    onAdDismissedFullScreenContent:
-                                        (ad) {
-                                          ad.dispose();
-                                          navigateToVideo();
-                                        },
-                                    onAdFailedToShowFullScreenContent:
-                                        (ad, error) {
-                                          ad.dispose();
-                                          navigateToVideo();
-                                        },
-                                  );
-                              ad.show(
-                                onUserEarnedReward: (_, reward) {
-                                  updateUserCount(userId, "ad_watch");
-                                },
-                              );
-                            },
-                            onAdFailedToLoad: (error) {
-                              debugPrint(
-                                '🎬 Rewarded failed, trying interstitial: ${error.message}',
-                              );
-                              InterstitialAd.load(
-                                adUnitId: _interstitialAdUnit,
-                                request: const AdRequest(),
-                                adLoadCallback: InterstitialAdLoadCallback(
-                                  onAdLoaded: (ad) {
-                                    if (adHandled) {
-                                      ad.dispose();
-                                      return;
-                                    }
-                                    adHandled = true;
-                                    if (mounted &&
-                                        Navigator.of(
-                                          context,
-                                        ).canPop()) {
-                                      Navigator.of(
-                                        context,
-                                      ).pop();
-                                    }
-                                    ad.fullScreenContentCallback =
-                                        FullScreenContentCallback(
-                                          onAdDismissedFullScreenContent:
-                                              (ad) {
-                                                ad.dispose();
-                                                navigateToVideo();
-                                              },
-                                          onAdFailedToShowFullScreenContent:
-                                              (ad, error) {
-                                                ad.dispose();
-                                                navigateToVideo();
-                                              },
-                                        );
-                                    ad.show();
-                                  },
-                                  onAdFailedToLoad: (error) {
-                                    debugPrint(
-                                      '🎬 Interstitial also failed: ${error.message}',
-                                    );
-                                  },
-                                ),
-                              );
-                            },
-                          ),
-                        );
+                        navigateToVideo();
                       }
                     }
                   : null,
