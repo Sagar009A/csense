@@ -61,7 +61,7 @@ class _BannerAdWidgetState extends State<BannerAdWidget> {
     }
   }
 
-  void _loadBannerAd() async {
+  Future<void> _loadBannerAd() async {
     if (!AdConfig.showBannerAd) {
       if (mounted) setState(() => _isLoading = false);
       return;

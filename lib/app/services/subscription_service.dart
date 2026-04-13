@@ -746,7 +746,9 @@ class SubscriptionService extends GetxService {
       if (Get.isRegistered<CreditService>()) {
         Get.find<CreditService>().updateSubscriptionStatus(subscribed);
       }
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('SubscriptionService: error syncing CreditService: $e');
+    }
   }
 
   @override

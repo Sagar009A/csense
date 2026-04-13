@@ -214,11 +214,15 @@ class _TeraBoxButtonScreenState extends State<TeraBoxButtonScreen> {
       }
 
       // Prefs, ads, and version check are independent - run in parallel
-      await Future.wait([
-        _initializePreferencesAndAds(),
-        loadAdSettings(),
-        _checkVersionOnInit(),
-      ]);
+      try {
+        await Future.wait([
+          _initializePreferencesAndAds(),
+          loadAdSettings(),
+          _checkVersionOnInit(),
+        ]);
+      } catch (e) {
+        debugPrint('ButtonScreen: service init error (non-fatal): $e');
+      }
     }();
 
     // Video fetch strategy (same as SmartBuy):

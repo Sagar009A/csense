@@ -264,6 +264,52 @@ Be specific and data-driven. If information is not visible, say "not available".
 Remember: Your ENTIRE response must be in $language language.
 ''';
   }
+
+  /// Chat with Gemini using the analysis result as context.
+  /// Returns the AI response text, or throws on failure.
+  Future<String> chatWithAnalysis({
+    required String analysisContext,
+    required List<Map<String, String>> history,
+    required String userMessage,
+  }) async {
+    if (_model == null) {
+      final apiKey = _config.geminiApiKey.value.trim();
+      if (apiKey.isEmpty) throw Exception('Gemini API key not configured.');
+      _model = GenerativeModel(
+        model: _config.geminiModel.value.trim().isNotEmpty
+            ? _config.geminiModel.value.trim()
+            : ApiConstants.geminiModel,
+        apiKey: apiKey,
+      );
+    }
+
+    final language = _getLanguageName();
+
+    // Build the system instruction + context as first user message
+    final systemPrompt =
+        'You are an expert stock market and forex trading analyst. '
+        'The user has previously analyzed a chart using AI. Below is the analysis result:\n\n'
+        '$analysisContext\n\n'
+        'Answer the user\'s follow-up questions about this analysis in $language. '
+        'Be concise, clear, and helpful.';
+
+    // Build conversation history as Content list
+    final contents = <Content>[
+      Content.user([TextPart(systemPrompt)]),
+      Content.model([TextPart('Understood. I\'m ready to answer follow-up questions about this analysis.')]),
+      // Previous conversation
+      for (final msg in history)
+        if (msg['role'] == 'user')
+          Content.user([TextPart(msg['text'] ?? '')])
+        else
+          Content.model([TextPart(msg['text'] ?? '')]),
+      // Current message
+      Content.user([TextPart(userMessage)]),
+    ];
+
+    final response = await _model!.generateContent(contents);
+    return response.text ?? 'Sorry, I could not generate a response.';
+  }
 }
 
 /// Stock Analysis Result Model

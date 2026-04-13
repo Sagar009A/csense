@@ -18,4 +18,8 @@ abstract class AppRoutes {
   static const String teraboxButton = '/terabox-button';
   static const String webPreview = '/web-preview';
   static const String legalWebView = '/legal-webview';
+  static const String aiChat = '/ai-chat';
+  static const String watchlist = '/watchlist';
+  static const String portfolio = '/portfolio';
+  static const String addTrade = '/add-trade';
 }

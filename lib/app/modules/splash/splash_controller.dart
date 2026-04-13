@@ -22,6 +22,7 @@ import '../../services/auth_service.dart';
 import '../../services/credit_service.dart';
 import '../../services/subscription_service.dart';
 import '../../services/security_service.dart';
+import '../../services/notification_service.dart';
 import '../../routes/app_routes.dart';
 
 import '../../../../app/globals.dart'; // Access global pendingInitialDeepLink
@@ -230,6 +231,7 @@ class SplashController extends GetxController
         Get.put(VideoService());
         Get.put(CreditService());
         Get.put(AuthService());
+        Get.put(NotificationService());
       }
 
       // Subscription, Connectivity, Consent all independent - run in parallel

@@ -31,6 +31,16 @@ import '../modules/video/terabox/button_screen.dart';
 import '../modules/video/terabox/player_screen.dart';
 import '../modules/web_preview/web_preview_screen.dart';
 import '../modules/legal_webview/legal_webview_screen.dart';
+import '../modules/analysis/chat_screen.dart';
+import '../modules/analysis/chat_controller.dart';
+import '../modules/watchlist/watchlist_screen.dart';
+import '../modules/watchlist/watchlist_controller.dart';
+import '../modules/portfolio/portfolio_screen.dart';
+import '../modules/portfolio/portfolio_controller.dart';
+import '../modules/portfolio/add_trade_screen.dart';
+import '../modules/portfolio/add_trade_controller.dart';
+import '../services/watchlist_service.dart';
+import '../services/portfolio_service.dart';
 
 class AppPages {
   static final pages = [
@@ -176,6 +186,44 @@ class AppPages {
         );
       },
       transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: AppRoutes.aiChat,
+      page: () => const ChatScreen(),
+      binding: BindingsBuilder(() {
+        Get.lazyPut(() => ChatController());
+      }),
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: AppRoutes.watchlist,
+      page: () => const WatchlistScreen(),
+      binding: BindingsBuilder(() {
+        if (!Get.isRegistered<WatchlistService>()) {
+          Get.put(WatchlistService());
+        }
+        Get.lazyPut(() => WatchlistController());
+      }),
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: AppRoutes.portfolio,
+      page: () => const PortfolioScreen(),
+      binding: BindingsBuilder(() {
+        if (!Get.isRegistered<PortfolioService>()) {
+          Get.put(PortfolioService());
+        }
+        Get.lazyPut(() => PortfolioController());
+      }),
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: AppRoutes.addTrade,
+      page: () => const AddTradeScreen(),
+      binding: BindingsBuilder(() {
+        Get.lazyPut(() => AddTradeController());
+      }),
+      transition: Transition.downToUp,
     ),
   ];
 }

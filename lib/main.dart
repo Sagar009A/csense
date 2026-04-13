@@ -225,7 +225,9 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         if (Get.isRegistered<AdService>()) {
           AdService.to.showAppOpenAd();
         }
-      } catch (_) {}
+      } catch (e) {
+        debugPrint('AppOpenAd: failed to show: $e');
+      }
     }
   }
 

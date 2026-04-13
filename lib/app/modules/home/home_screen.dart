@@ -278,6 +278,11 @@ class _HomeContent extends StatelessWidget {
                   CommonSizedBox.h24,
                   _buildScanButtons(isDark),
                   CommonSizedBox.h12,
+                  // Daily Reward Card
+                  _buildDailyRewardCard(isDark),
+                  // Watchlist & Portfolio Quick Access
+                  _buildQuickAccessRow(isDark),
+                  CommonSizedBox.h12,
                   // Native Ad before Recent Scans
                   const NativeAdWidget(),
                   CommonSizedBox.h16,
@@ -625,6 +630,106 @@ class _HomeContent extends StatelessWidget {
             label: 'upload_image',
             gradient: AppColors.secondaryGradient,
             onTap: () => controller.pickAndAnalyzeImage(fromCamera: false),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDailyRewardCard(bool isDark) {
+    return Obx(() {
+      if (!controller.canClaimDailyCredits.value) return const SizedBox.shrink();
+      return GestureDetector(
+        onTap: controller.watchAdForDailyCredits,
+        child: Container(
+          margin: EdgeInsets.only(bottom: 12.h),
+          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFF10B981), Color(0xFF059669)],
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+            ),
+            borderRadius: BorderRadius.circular(14.r),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF10B981).withValues(alpha: 0.3),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 44.w,
+                height: 44.w,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(Icons.card_giftcard_rounded, color: Colors.white, size: 24.w),
+              ),
+              SizedBox(width: 12.w),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '🎁 Daily Reward Available!',
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    Text(
+                      'Watch a short ad to claim +5 free credits',
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        color: Colors.white.withValues(alpha: 0.85),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Obx(() => controller.isClaimingDailyCredits.value
+                  ? SizedBox(
+                      width: 20.w,
+                      height: 20.w,
+                      child: const CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : Icon(Icons.arrow_forward_ios_rounded, color: Colors.white, size: 16.w)),
+            ],
+          ),
+        ),
+      );
+    });
+  }
+
+  Widget _buildQuickAccessRow(bool isDark) {
+    return Row(
+      children: [
+        Expanded(
+          child: _QuickAccessCard(
+            isDark: isDark,
+            icon: Icons.bookmark_rounded,
+            label: 'Watchlist',
+            gradientColors: const [Color(0xFF8B5CF6), Color(0xFFA855F7)],
+            onTap: () => Get.toNamed(AppRoutes.watchlist),
+          ),
+        ),
+        SizedBox(width: 12.w),
+        Expanded(
+          child: _QuickAccessCard(
+            isDark: isDark,
+            icon: Icons.show_chart_rounded,
+            label: 'Portfolio',
+            gradientColors: const [Color(0xFF0EA5E9), Color(0xFF38BDF8)],
+            onTap: () => Get.toNamed(AppRoutes.portfolio),
           ),
         ),
       ],
@@ -2116,5 +2221,61 @@ class _AccountStatusBadge extends StatelessWidget {
         ),
       );
     });
+  }
+}
+
+class _QuickAccessCard extends StatelessWidget {
+  final bool isDark;
+  final IconData icon;
+  final String label;
+  final List<Color> gradientColors;
+  final VoidCallback onTap;
+
+  const _QuickAccessCard({
+    required this.isDark,
+    required this.icon,
+    required this.label,
+    required this.gradientColors,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: gradientColors,
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(14.r),
+          boxShadow: [
+            BoxShadow(
+              color: gradientColors.first.withValues(alpha: 0.3),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: Colors.white, size: 22.sp),
+            SizedBox(width: 8.w),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 14.sp,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
