@@ -79,7 +79,7 @@ class NotificationService extends GetxService {
   Future<void> _saveToken(String token) async {
     try {
       if (!Get.isRegistered<AuthService>()) return;
-      final uid = AuthService.to.currentUser?.uid;
+      final uid = AuthService.to.currentUser.value?.uid;
       if (uid == null) return;
       await _dbRef.child('users').child(uid).child('fcmToken').set(token);
       debugPrint('NotificationService: Token saved to Firebase');

@@ -49,7 +49,7 @@ class WatchlistService extends GetxService {
 
   String? get _uid {
     try {
-      return Get.isRegistered<AuthService>() ? AuthService.to.currentUser?.uid : null;
+      return Get.isRegistered<AuthService>() ? AuthService.to.currentUser.value?.uid : null;
     } catch (e) {
       return null;
     }

@@ -295,16 +295,16 @@ Remember: Your ENTIRE response must be in $language language.
 
     // Build conversation history as Content list
     final contents = <Content>[
-      Content.user([TextPart(systemPrompt)]),
-      Content.model([TextPart('Understood. I\'m ready to answer follow-up questions about this analysis.')]),
+      Content('user', [TextPart(systemPrompt)]),
+      Content('model', [TextPart('Understood. I\'m ready to answer follow-up questions about this analysis.')]),
       // Previous conversation
       for (final msg in history)
         if (msg['role'] == 'user')
-          Content.user([TextPart(msg['text'] ?? '')])
+          Content('user', [TextPart(msg['text'] ?? '')])
         else
-          Content.model([TextPart(msg['text'] ?? '')]),
+          Content('model', [TextPart(msg['text'] ?? '')]),
       // Current message
-      Content.user([TextPart(userMessage)]),
+      Content('user', [TextPart(userMessage)]),
     ];
 
     final response = await _model!.generateContent(contents);
