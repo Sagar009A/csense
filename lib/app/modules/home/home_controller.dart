@@ -30,6 +30,8 @@ class HomeController extends GetxController {
   final RxList<Map<String, dynamic>> recentScans = <Map<String, dynamic>>[].obs;
   final RxBool isLoading = false.obs;
   final RxInt currentNavIndex = 0.obs;
+  final RxBool canClaimDailyCredits = false.obs;
+  final RxBool isClaimingDailyCredits = false.obs;
 
   // Page controller for bottom nav
   late PageController pageController;
@@ -58,6 +60,9 @@ class HomeController extends GetxController {
 
     // Show announcement popup (after a short delay so the screen is fully visible)
     Future.delayed(const Duration(milliseconds: 800), _checkAndShowAnnouncement);
+
+    // Check if daily credits can be claimed
+    _checkDailyCredits();
   }
 
   Future<void> _checkAndShowAnnouncement() async {
@@ -105,6 +110,69 @@ class HomeController extends GetxController {
     pageController.dispose();
     super.onClose();
   }
+
+  // ─── Daily Reward ─────────────────────────────────────────────────────────
+
+  void _checkDailyCredits() {
+    final lastClaimMs = _storage.read<int>('last_daily_credit_claim');
+    canClaimDailyCredits.value = _isDifferentDay(lastClaimMs);
+  }
+
+  bool _isDifferentDay(int? lastClaimMs) {
+    if (lastClaimMs == null) return true;
+    final last = DateTime.fromMillisecondsSinceEpoch(lastClaimMs);
+    final now = DateTime.now();
+    return now.year != last.year || now.month != last.month || now.day != last.day;
+  }
+
+  /// Show a rewarded ad; on reward earned, give 5 daily credits.
+  void watchAdForDailyCredits() {
+    if (!canClaimDailyCredits.value || isClaimingDailyCredits.value) return;
+    if (!Get.isRegistered<AdService>()) return;
+
+    isClaimingDailyCredits.value = true;
+    bool rewardEarned = false;
+
+    AdService.to.showRewardedAd(
+      onRewarded: (_) {
+        rewardEarned = true;
+      },
+      onAdClosed: () async {
+        if (rewardEarned) {
+          final success = await _creditService.addDailyCredits(5);
+          if (success) {
+            _storage.write('last_daily_credit_claim', DateTime.now().millisecondsSinceEpoch);
+            canClaimDailyCredits.value = false;
+            Get.snackbar(
+              '🎉 +5 Credits!',
+              'Daily reward credited to your account.',
+              snackPosition: SnackPosition.BOTTOM,
+              backgroundColor: Colors.green.withValues(alpha: 0.9),
+              colorText: Colors.white,
+              margin: const EdgeInsets.all(16),
+              borderRadius: 12,
+              duration: const Duration(seconds: 3),
+            );
+          }
+        }
+        isClaimingDailyCredits.value = false;
+      },
+      onAdFailed: (error) {
+        isClaimingDailyCredits.value = false;
+        Get.snackbar(
+          'Ad Unavailable',
+          'Please try again later.',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.orange.withValues(alpha: 0.9),
+          colorText: Colors.white,
+          margin: const EdgeInsets.all(16),
+          borderRadius: 12,
+        );
+      },
+    );
+  }
+
+  // ──────────────────────────────────────────────────────────────────────────
 
   void loadRecentScans() {
     recentScans.value = _storage.history.take(5).toList();

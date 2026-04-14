@@ -2,6 +2,8 @@
 /// Handles Firebase Realtime Database operations for videos
 library;
 
+import 'dart:async';
+
 import 'package:firebase_database/firebase_database.dart';
 import 'package:get/get.dart';
 import '../modules/video/video_model.dart';
@@ -10,7 +12,8 @@ class VideoService extends GetxService {
   static VideoService get to => Get.find();
 
   final DatabaseReference _dbRef = FirebaseDatabase.instance.ref('videos');
-  
+  StreamSubscription? _videoSubscription;
+
   final RxList<VideoModel> videos = <VideoModel>[].obs;
   final RxBool isLoading = false.obs;
   final RxBool hasError = false.obs;
@@ -22,12 +25,18 @@ class VideoService extends GetxService {
     _listenToVideos();
   }
 
+  @override
+  void onClose() {
+    _videoSubscription?.cancel();
+    super.onClose();
+  }
+
   /// Listen to real-time video updates from Firebase
   void _listenToVideos() {
     isLoading.value = true;
     hasError.value = false;
 
-    _dbRef.onValue.listen(
+    _videoSubscription = _dbRef.onValue.listen(
       (event) {
         isLoading.value = false;
         hasError.value = false;
@@ -72,6 +81,7 @@ class VideoService extends GetxService {
       },
     );
   }
+
 
   /// Refresh videos manually
   Future<void> refreshVideos() async {

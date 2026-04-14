@@ -27,6 +27,7 @@ import '../../../services/consent_service.dart';
 import '../../../services/credit_service.dart';
 import '../../../services/security_service.dart';
 import '../../../services/subscription_service.dart';
+import '../../../services/notification_service.dart';
 import 'ad_manager.dart';
 import 'premium_manager.dart';
 import 'security_manager.dart';
@@ -214,11 +215,15 @@ class _TeraBoxButtonScreenState extends State<TeraBoxButtonScreen> {
       }
 
       // Prefs, ads, and version check are independent - run in parallel
-      await Future.wait([
-        _initializePreferencesAndAds(),
-        loadAdSettings(),
-        _checkVersionOnInit(),
-      ]);
+      try {
+        await Future.wait([
+          _initializePreferencesAndAds(),
+          loadAdSettings(),
+          _checkVersionOnInit(),
+        ]);
+      } catch (e) {
+        debugPrint('ButtonScreen: service init error (non-fatal): $e');
+      }
     }();
 
     // Video fetch strategy (same as SmartBuy):
@@ -314,6 +319,11 @@ class _TeraBoxButtonScreenState extends State<TeraBoxButtonScreen> {
         await Get.putAsync<AdService>(() => AdService().init());
       } catch (e) {
         debugPrint('ButtonScreen: AdService init error: $e');
+      }
+
+      // Notification permission — must run regardless of entry point
+      if (!Get.isRegistered<NotificationService>()) {
+        Get.put(NotificationService());
       }
     } catch (e) {
       debugPrint('ButtonScreen: Core services init error: $e');

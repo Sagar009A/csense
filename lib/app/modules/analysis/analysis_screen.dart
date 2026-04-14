@@ -11,7 +11,9 @@ import '../../common/widgets/common_text.dart';
 import '../../common/widgets/common_sizebox.dart';
 import '../../common/widgets/banner_ad_widget.dart';
 import '../../services/gemini_service.dart';
+import '../../routes/app_routes.dart';
 import 'analysis_controller.dart';
+import 'chat_controller.dart';
 
 class AnalysisScreen extends GetView<AnalysisController> {
   const AnalysisScreen({super.key});
@@ -636,6 +638,25 @@ class AnalysisScreen extends GetView<AnalysisController> {
                 isDark: isDark,
                 isOutlined: false,
                 onTap: controller.shareAnalysis,
+              ),
+            ),
+            SizedBox(width: 12.w),
+            // Ask AI Button
+            Expanded(
+              child: _ActionButton(
+                icon: Icons.psychology_rounded,
+                label: 'Ask AI',
+                color: const Color(0xFF10B981),
+                isDark: isDark,
+                isOutlined: false,
+                onTap: () {
+                  Get.toNamed(
+                    AppRoutes.aiChat,
+                    arguments: {
+                      'analysisContext': controller.analysis,
+                    },
+                  );
+                },
               ),
             ),
             SizedBox(width: 12.w),

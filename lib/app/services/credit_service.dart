@@ -115,28 +115,28 @@ class CreditService extends GetxService {
       try {
         final v = e.snapshot.value;
         if (v != null) credits.value = (v as num).toInt();
-      } catch (_) {}
+      } catch (e) { debugPrint('CreditService: error parsing credits: $e'); }
     }));
 
     _listeners.add(base.child('isPremium').onValue.listen((e) {
       try {
         final v = e.snapshot.value;
         if (v != null) isPremium.value = v == true;
-      } catch (_) {}
+      } catch (e) { debugPrint('CreditService: error parsing isPremium: $e'); }
     }));
 
     _listeners.add(base.child('planCredits').onValue.listen((e) {
       try {
         final v = e.snapshot.value;
         planCredits.value = v != null ? (v as num).toInt() : 0;
-      } catch (_) {}
+      } catch (e) { debugPrint('CreditService: error parsing planCredits: $e'); }
     }));
 
     _listeners.add(base.child('planCreditsExpiry').onValue.listen((e) {
       try {
         final v = e.snapshot.value;
         planCreditsExpiry.value = v != null ? (v as num).toInt() : 0;
-      } catch (_) {}
+      } catch (e) { debugPrint('CreditService: error parsing planCreditsExpiry: $e'); }
     }));
   }
 
@@ -206,6 +206,31 @@ class CreditService extends GetxService {
       return false;
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  /// Add credits as a daily reward (no purchase verification required).
+  /// Returns true if credits were added successfully.
+  Future<bool> addDailyCredits(int amount) async {
+    if (_currentUserId == null) return false;
+    try {
+      final userRef = _dbRef.child('users').child(_currentUserId!);
+      final result = await userRef.child('credits').runTransaction((value) {
+        final current = (value as num?)?.toInt() ?? 0;
+        return Transaction.success(current + amount);
+      });
+      if (result.committed) {
+        await userRef.child('usage').push().set({
+          'type': 'daily_reward',
+          'amount': amount,
+          'timestamp': ServerValue.timestamp,
+        });
+        return true;
+      }
+      return false;
+    } catch (e) {
+      debugPrint('CreditService: error adding daily credits: $e');
+      return false;
     }
   }
 

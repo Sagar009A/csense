@@ -165,4 +165,28 @@ const Map<String, String> urPK = {
   'remove_ads_banner': 'Pro رکنیت = زیادہ درستگی',
   'free_users_accuracy': 'مفت صارفین کو تقریباً 60–70٪ درستگی',
   'subscribe_now': 'اب سبسکرائب کریں',
+
+  // Watchlist
+  'watchlist': 'واچ لسٹ',
+  'no_symbols_watchlist': 'واچ لسٹ میں کوئی علامت نہیں',
+  'add_symbols_hint': 'اسٹاک یا فاریکس جوڑنے کے لیے + دبائیں',
+  'add_to_watchlist': 'واچ لسٹ میں شامل کریں',
+  'symbol_required': 'علامت اور نام ضروری ہے۔',
+
+  // Portfolio
+  'portfolio': 'پورٹ فولیو',
+  'no_trades': 'ابھی کوئی ٹریڈ نہیں',
+  'add_trade_hint': 'پہلا ٹریڈ شامل کرنے کے لیے + دبائیں',
+  'add_trade': 'ٹریڈ شامل کریں',
+  'portfolio_pnl': 'پورٹ فولیو P&L',
+  'symbol_label': 'علامت',
+  'trade_type': 'ٹریڈ کی قسم',
+  'buy_price': 'خرید / داخلی قیمت',
+  'quantity': 'مقدار / لاٹ',
+  'current_price_optional': 'موجودہ قیمت (اختیاری)',
+  'save_trade': 'ٹریڈ محفوظ کریں',
+
+  // Exit Dialog
+  'exit_app': 'ایپ بند کریں؟',
+  'exit_confirmation': 'کیا آپ واقعی باہر جانا چاہتے ہیں؟',
 };

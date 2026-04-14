@@ -128,7 +128,7 @@ class _TeraBoxPlayerScreenState extends State<TeraBoxPlayerScreen> {
     final userIdString = prefs.getString('userId');
 
     if (userIdString != null) {
-      final userId = int.parse(userIdString);
+      final userId = int.tryParse(userIdString) ?? 0;
       updateUserCount(userId, "total_video_watch");
     }
 
@@ -175,6 +175,8 @@ class _TeraBoxPlayerScreenState extends State<TeraBoxPlayerScreen> {
       loadAdSettings();
       _loadVideoTimer();
       _checkMaintenance();
+    }).catchError((e) {
+      debugPrint('PlayerScreen: SharedPreferences init failed: $e');
     });
 
     // Native ad refresh disabled — load once, don't auto-refresh
@@ -439,7 +441,7 @@ class _TeraBoxPlayerScreenState extends State<TeraBoxPlayerScreen> {
   }
 
   /// Check for saved position and show resume dialog if applicable.
-  void _checkAndShowResumeDialog() async {
+  Future<void> _checkAndShowResumeDialog() async {
     _prefs ??= await SharedPreferences.getInstance();
     final savedSeconds = _prefs!.getInt('watch_${widget.shortCode}') ?? 0;
 

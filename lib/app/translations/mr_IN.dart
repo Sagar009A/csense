@@ -166,4 +166,28 @@ const Map<String, String> mrIN = {
   'remove_ads_banner': 'Pro सदस्यत्व = उच्च अचूकता',
   'free_users_accuracy': 'मोफत वापरकर्त्यांना अंदाजे 60–70% अचूकता',
   'subscribe_now': 'आता सबस्क्राइब करा',
+
+  // Watchlist
+  'watchlist': 'वॉचलिस्ट',
+  'no_symbols_watchlist': 'वॉचलिस्टमध्ये कोणतेही चिन्ह नाही',
+  'add_symbols_hint': 'स्टॉक किंवा फॉरेक्स जोडण्यासाठी + दाबा',
+  'add_to_watchlist': 'वॉचलिस्टमध्ये जोडा',
+  'symbol_required': 'चिन्ह आणि नाव आवश्यक आहे.',
+
+  // Portfolio
+  'portfolio': 'पोर्टफोलिओ',
+  'no_trades': 'अद्याप कोणताही व्यवहार नाही',
+  'add_trade_hint': 'तुमचा पहिला व्यवहार जोडण्यासाठी + दाबा',
+  'add_trade': 'व्यवहार जोडा',
+  'portfolio_pnl': 'पोर्टफोलिओ P&L',
+  'symbol_label': 'चिन्ह',
+  'trade_type': 'व्यवहाराचा प्रकार',
+  'buy_price': 'खरेदी / प्रवेश किंमत',
+  'quantity': 'प्रमाण / लॉट',
+  'current_price_optional': 'सध्याची किंमत (ऐच्छिक)',
+  'save_trade': 'व्यवहार सहेजा',
+
+  // Exit Dialog
+  'exit_app': 'ऐप बंद करायचे?',
+  'exit_confirmation': 'तुम्हाला खरोखर बाहेर पडायचे आहे का?',
 };
