@@ -99,7 +99,7 @@ class HomeScreen extends GetView<HomeController> {
               ),
               SizedBox(height: 20.h),
               Text(
-                'Exit App?',
+                'exit_app'.tr,
                 style: TextStyle(
                   fontSize: 20.sp,
                   fontWeight: FontWeight.bold,
@@ -108,7 +108,7 @@ class HomeScreen extends GetView<HomeController> {
               ),
               SizedBox(height: 8.h),
               Text(
-                'Are you sure you want to exit?',
+                'exit_confirmation'.tr,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 14.sp,

@@ -167,4 +167,28 @@ const Map<String, String> esES = {
   'remove_ads_banner': 'Membresía Pro = Mayor precisión',
   'free_users_accuracy': 'Usuarios gratis: aprox. 60–70% de precisión',
   'subscribe_now': 'Suscribirse ahora',
+
+  // Watchlist
+  'watchlist': 'Lista de seguimiento',
+  'no_symbols_watchlist': 'No hay símbolos en la lista',
+  'add_symbols_hint': 'Toca + para agregar acciones o pares forex',
+  'add_to_watchlist': 'Agregar a lista de seguimiento',
+  'symbol_required': 'El símbolo y el nombre son obligatorios.',
+
+  // Portfolio
+  'portfolio': 'Portafolio',
+  'no_trades': 'Aún no hay operaciones',
+  'add_trade_hint': 'Toca + para agregar tu primera operación',
+  'add_trade': 'Agregar operación',
+  'portfolio_pnl': 'P&L del portafolio',
+  'symbol_label': 'Símbolo',
+  'trade_type': 'Tipo de operación',
+  'buy_price': 'Precio de compra / entrada',
+  'quantity': 'Cantidad / Lotes',
+  'current_price_optional': 'Precio actual (opcional)',
+  'save_trade': 'Guardar operación',
+
+  // Exit Dialog
+  'exit_app': '¿Salir de la App?',
+  'exit_confirmation': '¿Estás seguro de que quieres salir?',
 };

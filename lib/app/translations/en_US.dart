@@ -163,4 +163,28 @@ const Map<String, String> enUS = {
   'remove_ads_banner': 'Pro Membership = Higher Accuracy',
   'free_users_accuracy': 'Free users get approx. 60–70% accuracy',
   'subscribe_now': 'Subscribe Now',
+
+  // Watchlist
+  'watchlist': 'Watchlist',
+  'no_symbols_watchlist': 'No symbols in watchlist',
+  'add_symbols_hint': 'Tap + to add stocks or forex pairs',
+  'add_to_watchlist': 'Add to Watchlist',
+  'symbol_required': 'Symbol and name are required.',
+
+  // Portfolio
+  'portfolio': 'Portfolio',
+  'no_trades': 'No trades yet',
+  'add_trade_hint': 'Tap + to add your first trade',
+  'add_trade': 'Add Trade',
+  'portfolio_pnl': 'Portfolio P&L',
+  'symbol_label': 'Symbol',
+  'trade_type': 'Trade Type',
+  'buy_price': 'Buy / Entry Price',
+  'quantity': 'Quantity / Lots',
+  'current_price_optional': 'Current Price (optional)',
+  'save_trade': 'Save Trade',
+
+  // Exit Dialog
+  'exit_app': 'Exit App?',
+  'exit_confirmation': 'Are you sure you want to exit?',
 };

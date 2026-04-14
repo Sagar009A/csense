@@ -25,7 +25,7 @@ class WatchlistScreen extends GetView<WatchlistController> {
           onPressed: () => Get.back(),
         ),
         title: Text(
-          'Watchlist',
+          'watchlist'.tr,
           style: TextStyle(
             fontSize: 18.sp,
             fontWeight: FontWeight.bold,
@@ -61,10 +61,10 @@ class WatchlistScreen extends GetView<WatchlistController> {
                 Icon(Icons.bookmark_border_rounded, size: 64.w,
                     color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
                 SizedBox(height: 16.h),
-                Text('No symbols in watchlist', style: TextStyle(fontSize: 16.sp,
+                Text('no_symbols_watchlist'.tr, style: TextStyle(fontSize: 16.sp,
                     color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight)),
                 SizedBox(height: 8.h),
-                Text('Tap + to add stocks or forex pairs', style: TextStyle(fontSize: 13.sp,
+                Text('add_symbols_hint'.tr, style: TextStyle(fontSize: 13.sp,
                     color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight)),
               ],
             ),

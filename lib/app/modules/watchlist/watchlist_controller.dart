@@ -45,7 +45,7 @@ class WatchlistController extends GetxController {
       AlertDialog(
         backgroundColor: isDark ? const Color(0xFF1F1F2E) : Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Add to Watchlist'),
+        title: Text('add_to_watchlist'.tr),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -93,7 +93,7 @@ class WatchlistController extends GetxController {
     final symbol = symbolController.text.trim();
     final name = nameController.text.trim();
     if (symbol.isEmpty || name.isEmpty) {
-      Get.snackbar('Error', 'Symbol and name are required.', backgroundColor: Colors.red, colorText: Colors.white);
+      Get.snackbar('error'.tr, 'symbol_required'.tr, backgroundColor: Colors.red, colorText: Colors.white);
       return;
     }
     isSaving.value = true;

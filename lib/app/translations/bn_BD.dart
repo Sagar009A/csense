@@ -166,4 +166,28 @@ const Map<String, String> bnBD = {
   'remove_ads_banner': 'Pro সদস্যতা = উচ্চতর নির্ভুলতা',
   'free_users_accuracy': 'ফ্রি ব্যবহারকারীদের প্রায় 60–70% নির্ভুলতা',
   'subscribe_now': 'এখনই সাবস্ক্রাইব করুন',
+
+  // Watchlist
+  'watchlist': 'ওয়াচলিস্ট',
+  'no_symbols_watchlist': 'ওয়াচলিস্টে কোনো প্রতীক নেই',
+  'add_symbols_hint': 'স্টক বা ফরেক্স যোগ করতে + চাপুন',
+  'add_to_watchlist': 'ওয়াচলিস্টে যোগ করুন',
+  'symbol_required': 'প্রতীক এবং নাম আবশ্যক।',
+
+  // Portfolio
+  'portfolio': 'পোর্টফোলিও',
+  'no_trades': 'এখনো কোনো ট্রেড নেই',
+  'add_trade_hint': 'আপনার প্রথম ট্রেড যোগ করতে + চাপুন',
+  'add_trade': 'ট্রেড যোগ করুন',
+  'portfolio_pnl': 'পোর্টফোলিও P&L',
+  'symbol_label': 'প্রতীক',
+  'trade_type': 'ট্রেডের ধরন',
+  'buy_price': 'ক্রয় / প্রবেশ মূল্য',
+  'quantity': 'পরিমাণ / লট',
+  'current_price_optional': 'বর্তমান মূল্য (ঐচ্ছিক)',
+  'save_trade': 'ট্রেড সংরক্ষণ করুন',
+
+  // Exit Dialog
+  'exit_app': 'অ্যাপ বন্ধ করবেন?',
+  'exit_confirmation': 'আপনি কি সত্যিই প্রস্থান করতে চান?',
 };

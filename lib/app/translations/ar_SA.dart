@@ -162,4 +162,28 @@ const Map<String, String> arSA = {
   'remove_ads_banner': 'عضوية Pro = دقة أعلى',
   'free_users_accuracy': 'المستخدمون المجانيون يحصلون على دقة تقريبية 60–70٪',
   'subscribe_now': 'اشترك الآن',
+
+  // Watchlist
+  'watchlist': 'قائمة المراقبة',
+  'no_symbols_watchlist': 'لا توجد رموز في قائمة المراقبة',
+  'add_symbols_hint': 'اضغط + لإضافة أسهم أو أزواج فوركس',
+  'add_to_watchlist': 'إضافة إلى قائمة المراقبة',
+  'symbol_required': 'الرمز والاسم مطلوبان.',
+
+  // Portfolio
+  'portfolio': 'محفظة',
+  'no_trades': 'لا توجد صفقات بعد',
+  'add_trade_hint': 'اضغط + لإضافة أول صفقة',
+  'add_trade': 'إضافة صفقة',
+  'portfolio_pnl': 'أرباح وخسائر المحفظة',
+  'symbol_label': 'الرمز',
+  'trade_type': 'نوع الصفقة',
+  'buy_price': 'سعر الشراء / الدخول',
+  'quantity': 'الكمية / الوحدات',
+  'current_price_optional': 'السعر الحالي (اختياري)',
+  'save_trade': 'حفظ الصفقة',
+
+  // Exit Dialog
+  'exit_app': 'إغلاق التطبيق؟',
+  'exit_confirmation': 'هل أنت متأكد أنك تريد الخروج؟',
 };

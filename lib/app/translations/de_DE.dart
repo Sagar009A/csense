@@ -167,4 +167,28 @@ const Map<String, String> deDE = {
   'remove_ads_banner': 'Pro-Mitgliedschaft = höhere Genauigkeit',
   'free_users_accuracy': 'Kostenlose Nutzer: ca. 60–70 % Genauigkeit',
   'subscribe_now': 'Jetzt abonnieren',
+
+  // Watchlist
+  'watchlist': 'Beobachtungsliste',
+  'no_symbols_watchlist': 'Keine Symbole in der Beobachtungsliste',
+  'add_symbols_hint': 'Tippe + um Aktien oder Forex-Paare hinzuzufügen',
+  'add_to_watchlist': 'Zur Beobachtungsliste hinzufügen',
+  'symbol_required': 'Symbol und Name sind erforderlich.',
+
+  // Portfolio
+  'portfolio': 'Portfolio',
+  'no_trades': 'Noch keine Trades',
+  'add_trade_hint': 'Tippe + um deinen ersten Trade hinzuzufügen',
+  'add_trade': 'Trade hinzufügen',
+  'portfolio_pnl': 'Portfolio P&L',
+  'symbol_label': 'Symbol',
+  'trade_type': 'Trade-Typ',
+  'buy_price': 'Kauf- / Einstiegspreis',
+  'quantity': 'Menge / Lots',
+  'current_price_optional': 'Aktueller Preis (optional)',
+  'save_trade': 'Trade speichern',
+
+  // Exit Dialog
+  'exit_app': 'App beenden?',
+  'exit_confirmation': 'Möchtest du die App wirklich beenden?',
 };

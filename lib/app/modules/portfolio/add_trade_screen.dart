@@ -25,7 +25,7 @@ class AddTradeScreen extends GetView<AddTradeController> {
           onPressed: () => Get.back(),
         ),
         title: Text(
-          'Add Trade',
+          'add_trade'.tr,
           style: TextStyle(
             fontSize: 18.sp,
             fontWeight: FontWeight.bold,
@@ -43,7 +43,7 @@ class AddTradeScreen extends GetView<AddTradeController> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildLabel(isDark, 'Symbol'),
+            _buildLabel(isDark, 'symbol_label'.tr),
             SizedBox(height: 6.h),
             _buildTextField(
               controller.symbolController,
@@ -52,7 +52,7 @@ class AddTradeScreen extends GetView<AddTradeController> {
               capitalization: TextCapitalization.characters,
             ),
             SizedBox(height: 16.h),
-            _buildLabel(isDark, 'Trade Type'),
+            _buildLabel(isDark, 'trade_type'.tr),
             SizedBox(height: 8.h),
             Obx(() => Row(
                   children: [
@@ -62,7 +62,7 @@ class AddTradeScreen extends GetView<AddTradeController> {
                   ],
                 )),
             SizedBox(height: 16.h),
-            _buildLabel(isDark, 'Buy / Entry Price'),
+            _buildLabel(isDark, 'buy_price'.tr),
             SizedBox(height: 6.h),
             _buildTextField(
               controller.buyPriceController,
@@ -71,7 +71,7 @@ class AddTradeScreen extends GetView<AddTradeController> {
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
             ),
             SizedBox(height: 16.h),
-            _buildLabel(isDark, 'Quantity / Lots'),
+            _buildLabel(isDark, 'quantity'.tr),
             SizedBox(height: 6.h),
             _buildTextField(
               controller.quantityController,
@@ -80,7 +80,7 @@ class AddTradeScreen extends GetView<AddTradeController> {
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
             ),
             SizedBox(height: 16.h),
-            _buildLabel(isDark, 'Current Price (optional)'),
+            _buildLabel(isDark, 'current_price_optional'.tr),
             SizedBox(height: 6.h),
             _buildTextField(
               controller.currentPriceController,
@@ -114,7 +114,7 @@ class AddTradeScreen extends GetView<AddTradeController> {
                             height: 22,
                             child: CircularProgressIndicator(
                                 color: Colors.white, strokeWidth: 2.5))
-                        : Text('Save Trade',
+                        : Text('save_trade'.tr,
                             style: TextStyle(
                                 fontSize: 16.sp,
                                 fontWeight: FontWeight.bold,

@@ -169,4 +169,28 @@ const Map<String, String> hiIN = {
   'remove_ads_banner': 'Pro सदस्यता = उच्च सटीकता',
   'free_users_accuracy': 'मुफ्त उपयोगकर्ताओं को लगभग 60–70% सटीकता मिलती है',
   'subscribe_now': 'अभी सब्सक्राइब करें',
+
+  // Watchlist
+  'watchlist': 'वॉचलिस्ट',
+  'no_symbols_watchlist': 'वॉचलिस्ट में कोई सिंबल नहीं',
+  'add_symbols_hint': 'स्टॉक या फॉरेक्स जोड़ने के लिए + दबाएं',
+  'add_to_watchlist': 'वॉचलिस्ट में जोड़ें',
+  'symbol_required': 'सिंबल और नाम आवश्यक हैं।',
+
+  // Portfolio
+  'portfolio': 'पोर्टफोलियो',
+  'no_trades': 'अभी कोई ट्रेड नहीं',
+  'add_trade_hint': 'अपना पहला ट्रेड जोड़ने के लिए + दबाएं',
+  'add_trade': 'ट्रेड जोड़ें',
+  'portfolio_pnl': 'पोर्टफोलियो P&L',
+  'symbol_label': 'सिंबल',
+  'trade_type': 'ट्रेड का प्रकार',
+  'buy_price': 'खरीद / प्रवेश मूल्य',
+  'quantity': 'मात्रा / लॉट',
+  'current_price_optional': 'वर्तमान मूल्य (वैकल्पिक)',
+  'save_trade': 'ट्रेड सहेजें',
+
+  // Exit Dialog
+  'exit_app': 'ऐप बंद करें?',
+  'exit_confirmation': 'क्या आप ऐप बंद करना चाहते हैं?',
 };

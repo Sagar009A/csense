@@ -27,7 +27,7 @@ class PortfolioScreen extends GetView<PortfolioController> {
           onPressed: () => Get.back(),
         ),
         title: Text(
-          'Portfolio',
+          'portfolio'.tr,
           style: TextStyle(
             fontSize: 18.sp,
             fontWeight: FontWeight.bold,
@@ -41,7 +41,7 @@ class PortfolioScreen extends GetView<PortfolioController> {
               final result = await Get.toNamed(AppRoutes.addTrade);
               if (result == true) controller.refresh();
             },
-            tooltip: 'Add Trade',
+            tooltip: 'add_trade'.tr,
           ),
         ],
         bottom: PreferredSize(
@@ -75,14 +75,14 @@ class PortfolioScreen extends GetView<PortfolioController> {
                         ? AppColors.textSecondaryDark
                         : AppColors.textSecondaryLight),
                 SizedBox(height: 16.h),
-                Text('No trades yet',
+                Text('no_trades'.tr,
                     style: TextStyle(
                         fontSize: 16.sp,
                         color: isDark
                             ? AppColors.textSecondaryDark
                             : AppColors.textSecondaryLight)),
                 SizedBox(height: 8.h),
-                Text('Tap + to add your first trade',
+                Text('add_trade_hint'.tr,
                     style: TextStyle(
                         fontSize: 13.sp,
                         color: isDark
@@ -142,7 +142,7 @@ class _PnlSummaryCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Portfolio P&L',
+          Text('portfolio_pnl'.tr,
               style: TextStyle(
                   fontSize: 13.sp,
                   color: Colors.white.withValues(alpha: 0.8))),
