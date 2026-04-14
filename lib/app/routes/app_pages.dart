@@ -144,7 +144,6 @@ class AppPages {
           // Clean up after reading
           GetStorage().remove('pending_deep_link_short_code');
         }
-        print("312321321321231=====${shortCode}");
         return TeraBoxButtonScreen(shortCode: shortCode);
       },
       transition: Transition.fade,
