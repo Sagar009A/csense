@@ -684,7 +684,7 @@ class _HomeContent extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      'Watch a short ad to claim +5 free credits',
+                      'Watch a short ad to claim +1 free credit',
                       style: TextStyle(
                         fontSize: 12.sp,
                         color: Colors.white.withValues(alpha: 0.85),

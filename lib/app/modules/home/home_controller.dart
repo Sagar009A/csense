@@ -139,12 +139,12 @@ class HomeController extends GetxController {
       },
       onAdClosed: () async {
         if (rewardEarned) {
-          final success = await _creditService.addDailyCredits(5);
+          final success = await _creditService.addDailyCredits(1);
           if (success) {
             _storage.write('last_daily_credit_claim', DateTime.now().millisecondsSinceEpoch);
             canClaimDailyCredits.value = false;
             Get.snackbar(
-              '🎉 +5 Credits!',
+              '🎉 +1 Credit!',
               'Daily reward credited to your account.',
               snackPosition: SnackPosition.BOTTOM,
               backgroundColor: Colors.green.withValues(alpha: 0.9),
