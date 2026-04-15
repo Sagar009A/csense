@@ -1,0 +1,26 @@
+{
+  "rules": {
+    ".read": "auth != null",
+    ".write": "auth != null",
+    "videos": {
+      ".read": true,
+      ".write": "auth != null"
+    },
+    "app_settings": {
+      ".read": true,
+      ".write": "auth != null"
+    },
+    "api_config": {
+      ".read": true,
+      ".write": "auth != null"
+    },
+    "ad_config": {
+      ".read": true,
+      ".write": "auth != null"
+    },
+    "iap_config": {
+      ".read": true,
+      ".write": "auth != null"
+    }
+  }
+}
