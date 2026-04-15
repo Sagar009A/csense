@@ -9,6 +9,27 @@ class AdConfig {
   AdConfig._();
 
   // ═══════════════════════════════════════════════════════════════════════════
+  //                              AD NETWORK TOGGLE
+  // ═══════════════════════════════════════════════════════════════════════════
+  /// Ad network to use: 'admob' (default) or 'adx' (Google Ad Manager / AdX)
+  /// Set via Firebase RTDB ad_config → adNetwork: "adx" to switch to AdX
+  static String adNetwork = 'admob';
+
+  // AdX (Google Ad Manager) — Android ad unit IDs
+  static String _adxAndroidBannerId       = '/21753324030,23133085249/com.chartsense.ai.app_Banner';
+  static String _adxAndroidInterstitialId = '/21753324030,23133085249/com.chartsense.ai.app_Interstitial';
+  static String _adxAndroidNativeId       = '/21753324030,23133085249/com.chartsense.ai.app_Native';
+  static String _adxAndroidRectangleId    = '/21753324030,23133085249/com.chartsense.ai.app_Rectangle';
+  static String _adxAndroidRewardedId     = '/21753324030,23133085249/com.chartsense.ai.app_Rewarded';
+
+  // AdX (Google Ad Manager) — iOS ad unit IDs
+  static String _adxIosBannerId       = '/21753324030,23133085249/6759394053_Banner';
+  static String _adxIosInterstitialId = '/21753324030,23133085249/6759394053_Interstitial';
+  static String _adxIosNativeId       = '/21753324030,23133085249/6759394053_Native';
+  static String _adxIosRectangleId    = '/21753324030,23133085249/6759394053_Rectangle';
+  static String _adxIosRewardedId     = '/21753324030,23133085249/6759394053_Rewarded';
+
+  // ═══════════════════════════════════════════════════════════════════════════
   //                              MASTER SWITCHES
   // ═══════════════════════════════════════════════════════════════════════════
   /// Enable/disable banner ads globally
@@ -47,6 +68,7 @@ class AdConfig {
   /// Banner Ad Unit ID
   static String get bannerAdId {
     if (kDebugMode) return _testBannerId;
+    if (adNetwork == 'adx') return Platform.isIOS ? _adxIosBannerId : _adxAndroidBannerId;
     if (Platform.isIOS) {
       return 'ca-app-pub-5601247182612981/9404781216'; // iOS Production ID
     }
@@ -58,6 +80,7 @@ class AdConfig {
   /// Native Ad Unit ID
   static String get nativeAdId {
     if (kDebugMode) return _testNativeId;
+    if (adNetwork == 'adx') return Platform.isIOS ? _adxIosNativeId : _adxAndroidNativeId;
     if (Platform.isIOS) {
       return 'ca-app-pub-5601247182612981/8762617538'; // iOS Production ID
     }
@@ -69,6 +92,7 @@ class AdConfig {
   /// Interstitial Ad Unit ID
   static String get interstitialAdId {
     if (kDebugMode) return _testInterstitialId;
+    if (adNetwork == 'adx') return Platform.isIOS ? _adxIosInterstitialId : _adxAndroidInterstitialId;
     if (Platform.isIOS) {
       return 'ca-app-pub-5601247182612981/6307844580'; // iOS Production ID
     }
@@ -80,11 +104,19 @@ class AdConfig {
   /// Rewarded Ad Unit ID
   static String get rewardedAdId {
     if (kDebugMode) return _testRewardedId;
+    if (adNetwork == 'adx') return Platform.isIOS ? _adxIosRewardedId : _adxAndroidRewardedId;
     if (Platform.isIOS) {
       return 'ca-app-pub-5601247182612981/5781706331'; // iOS Production ID
     }
     if (_rewardedAdId.isNotEmpty) return _rewardedAdId;
     return _testRewardedId; // Android Test ID fallback
+  }
+
+  /// Rectangle Ad Unit ID (AdX only — falls back to banner for AdMob)
+  static String get rectangleAdId {
+    if (kDebugMode) return _testBannerId;
+    if (adNetwork == 'adx') return Platform.isIOS ? _adxIosRectangleId : _adxAndroidRectangleId;
+    return bannerAdId;
   }
 
   static String _appOpenAdId = '';
@@ -164,12 +196,27 @@ class AdConfig {
     if (json['showRewardedAd'] != null) showRewardedAd = json['showRewardedAd'];
     if (json['showAppOpenAd'] != null) showAppOpenAd = json['showAppOpenAd'];
 
-    // Ad Unit IDs
+    // Ad Network Toggle ('admob' or 'adx')
+    if (json['adNetwork'] != null) adNetwork = json['adNetwork'].toString();
+
+    // Ad Unit IDs (AdMob)
     if (json['bannerAdId'] != null) _bannerAdId = json['bannerAdId'];
     if (json['nativeAdId'] != null) _nativeAdId = json['nativeAdId'];
     if (json['interstitialAdId'] != null) _interstitialAdId = json['interstitialAdId'];
     if (json['rewardedAdId'] != null) _rewardedAdId = json['rewardedAdId'];
     if (json['appOpenAdId'] != null) _appOpenAdId = json['appOpenAdId'];
+
+    // Ad Unit IDs (AdX / Google Ad Manager) — optional overrides, baked-in defaults above
+    if (json['adxAndroidBannerId'] != null) _adxAndroidBannerId = json['adxAndroidBannerId'].toString();
+    if (json['adxAndroidInterstitialId'] != null) _adxAndroidInterstitialId = json['adxAndroidInterstitialId'].toString();
+    if (json['adxAndroidNativeId'] != null) _adxAndroidNativeId = json['adxAndroidNativeId'].toString();
+    if (json['adxAndroidRectangleId'] != null) _adxAndroidRectangleId = json['adxAndroidRectangleId'].toString();
+    if (json['adxAndroidRewardedId'] != null) _adxAndroidRewardedId = json['adxAndroidRewardedId'].toString();
+    if (json['adxIosBannerId'] != null) _adxIosBannerId = json['adxIosBannerId'].toString();
+    if (json['adxIosInterstitialId'] != null) _adxIosInterstitialId = json['adxIosInterstitialId'].toString();
+    if (json['adxIosNativeId'] != null) _adxIosNativeId = json['adxIosNativeId'].toString();
+    if (json['adxIosRectangleId'] != null) _adxIosRectangleId = json['adxIosRectangleId'].toString();
+    if (json['adxIosRewardedId'] != null) _adxIosRewardedId = json['adxIosRewardedId'].toString();
 
     // Native Ad Styling
     if (json['nativeButtonColor'] != null) nativeButtonColor = json['nativeButtonColor'];
