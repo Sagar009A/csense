@@ -49,8 +49,9 @@
 	</array>
 	<key>FlutterDeepLinkingEnabled</key>
 	<false/>
+	<!-- AdX (Google Ad Manager) App ID — switched from AdMob (ca-app-pub-5601247182612981~9289706503) -->
 	<key>GADApplicationIdentifier</key>
-	<string>ca-app-pub-5601247182612981~9289706503</string>
+	<string>ca-app-pub-7664893030317051~3213844558</string>
 	<key>NSUserTrackingUsageDescription</key>
 	<string>This identifier will be used to deliver personalized ads to you.</string>
 	<key>LSRequiresIPhoneOS</key>

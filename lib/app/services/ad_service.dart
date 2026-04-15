@@ -22,10 +22,13 @@ class AdService extends GetxService {
   /// Global flag to control ad visibility based on user credits/subscription
   final RxBool shouldShowAds = true.obs;
 
+  /// True when Firebase config has switched ad network to AdX (Google Ad Manager)
+  bool get _isAdx => AdConfig.adNetwork == 'adx';
+
   // ═══════════════════════════════════════════════════════════════════════════
   //                              BANNER ADS
   // ═══════════════════════════════════════════════════════════════════════════
-  final Rx<BannerAd?> bannerAd = Rx<BannerAd?>(null);
+  final Rx<Ad?> bannerAd = Rx<Ad?>(null);
   final RxBool isBannerAdLoaded = false.obs;
   int _bannerAdRetryAttempt = 0;
 
@@ -43,7 +46,7 @@ class AdService extends GetxService {
   // ═══════════════════════════════════════════════════════════════════════════
   //                           INTERSTITIAL ADS
   // ═══════════════════════════════════════════════════════════════════════════
-  final RxList<InterstitialAd> _interstitialAds = <InterstitialAd>[].obs;
+  final RxList<Ad> _interstitialAds = <Ad>[].obs;
   final RxBool isInterstitialAdLoaded = false.obs;
   final RxBool isLoadingInterstitialAd = false.obs;
   DateTime? _lastInterstitialTime;
@@ -227,29 +230,53 @@ class AdService extends GetxService {
       return;
     }
 
-    bannerAd.value = BannerAd(
-      adUnitId: AdConfig.bannerAdId,
-      size: size,
-      request: const AdRequest(),
-      listener: BannerAdListener(
-        onAdLoaded: (_) {
-          isBannerAdLoaded.value = true;
-          _bannerAdRetryAttempt = 0;
-          debugPrint('AdService: Banner ad loaded');
-        },
-        onAdFailedToLoad: (ad, error) {
-          isBannerAdLoaded.value = false;
-          ad.dispose();
-          bannerAd.value = null;
-          debugPrint('AdService: Banner ad failed to load: ${error.message}');
-          // Exponential backoff retry
-          _bannerAdRetryAttempt++;
-          final retryDelay = _calculateRetryDelay(_bannerAdRetryAttempt);
-          debugPrint('AdService: Retrying banner ad in ${retryDelay.inSeconds}s');
-          Future.delayed(retryDelay, loadBannerAd);
-        },
-      ),
-    );
+    if (_isAdx) {
+      bannerAd.value = AdManagerBannerAd(
+        adUnitId: AdConfig.bannerAdId,
+        sizes: [size],
+        request: AdManagerAdRequest(),
+        listener: AdManagerBannerAdListener(
+          onAdLoaded: (_) {
+            isBannerAdLoaded.value = true;
+            _bannerAdRetryAttempt = 0;
+            debugPrint('AdService: AdX Banner ad loaded');
+          },
+          onAdFailedToLoad: (ad, error) {
+            isBannerAdLoaded.value = false;
+            ad.dispose();
+            bannerAd.value = null;
+            debugPrint('AdService: AdX Banner ad failed to load: ${error.message}');
+            _bannerAdRetryAttempt++;
+            final retryDelay = _calculateRetryDelay(_bannerAdRetryAttempt);
+            debugPrint('AdService: Retrying banner ad in ${retryDelay.inSeconds}s');
+            Future.delayed(retryDelay, loadBannerAd);
+          },
+        ),
+      );
+    } else {
+      bannerAd.value = BannerAd(
+        adUnitId: AdConfig.bannerAdId,
+        size: size,
+        request: const AdRequest(),
+        listener: BannerAdListener(
+          onAdLoaded: (_) {
+            isBannerAdLoaded.value = true;
+            _bannerAdRetryAttempt = 0;
+            debugPrint('AdService: Banner ad loaded');
+          },
+          onAdFailedToLoad: (ad, error) {
+            isBannerAdLoaded.value = false;
+            ad.dispose();
+            bannerAd.value = null;
+            debugPrint('AdService: Banner ad failed to load: ${error.message}');
+            _bannerAdRetryAttempt++;
+            final retryDelay = _calculateRetryDelay(_bannerAdRetryAttempt);
+            debugPrint('AdService: Retrying banner ad in ${retryDelay.inSeconds}s');
+            Future.delayed(retryDelay, loadBannerAd);
+          },
+        ),
+      );
+    }
 
     bannerAd.value?.load();
   }
@@ -300,7 +327,7 @@ class AdService extends GetxService {
         'cornerRadius': AdConfig.nativeCornerRadius,
         'isDarkMode': isDarkMode,
       },
-      request: const AdRequest(),
+      request: _isAdx ? AdManagerAdRequest() : const AdRequest(),
       listener: NativeAdListener(
         onAdLoaded: (ad) {
           _isLoadingNativeAd = false;
@@ -448,36 +475,47 @@ class AdService extends GetxService {
     _isLoadingInterstitialAd = true;
     isLoadingInterstitialAd.value = true;
 
-    InterstitialAd.load(
-      adUnitId: AdConfig.interstitialAdId,
-      request: const AdRequest(),
-      adLoadCallback: InterstitialAdLoadCallback(
-        onAdLoaded: (ad) {
-          _isLoadingInterstitialAd = false;
-          _interstitialAds.add(ad);
-          isInterstitialAdLoaded.value = true;
-          isLoadingInterstitialAd.value = false;
-          _interstitialAdRetryAttempt = 0;
-          debugPrint('AdService: Interstitial ad loaded. Total: ${_interstitialAds.length}');
+    void onLoaded(Ad ad) {
+      _isLoadingInterstitialAd = false;
+      _interstitialAds.add(ad);
+      isInterstitialAdLoaded.value = true;
+      isLoadingInterstitialAd.value = false;
+      _interstitialAdRetryAttempt = 0;
+      debugPrint('AdService: Interstitial ad loaded. Total: ${_interstitialAds.length}');
+      if (_interstitialAds.length < _maxInterstitialAdsPool) {
+        Future.delayed(const Duration(milliseconds: 500), _loadSingleInterstitialAd);
+      }
+    }
 
-          // Keep pool topped up
-          if (_interstitialAds.length < _maxInterstitialAdsPool) {
-            Future.delayed(const Duration(milliseconds: 500), _loadSingleInterstitialAd);
-          }
-        },
-        onAdFailedToLoad: (error) {
-          _isLoadingInterstitialAd = false;
-          isLoadingInterstitialAd.value = false;
-          debugPrint('AdService: Interstitial ad failed to load: ${error.message}');
+    void onFailed(LoadAdError error) {
+      _isLoadingInterstitialAd = false;
+      isLoadingInterstitialAd.value = false;
+      debugPrint('AdService: Interstitial ad failed to load: ${error.message}');
+      _interstitialAdRetryAttempt++;
+      final retryDelay = _calculateRetryDelay(_interstitialAdRetryAttempt);
+      debugPrint('AdService: Retrying interstitial ad in ${retryDelay.inSeconds}s (attempt $_interstitialAdRetryAttempt)');
+      Future.delayed(retryDelay, _loadSingleInterstitialAd);
+    }
 
-          // Exponential backoff retry
-          _interstitialAdRetryAttempt++;
-          final retryDelay = _calculateRetryDelay(_interstitialAdRetryAttempt);
-          debugPrint('AdService: Retrying interstitial ad in ${retryDelay.inSeconds}s (attempt $_interstitialAdRetryAttempt)');
-          Future.delayed(retryDelay, _loadSingleInterstitialAd);
-        },
-      ),
-    );
+    if (_isAdx) {
+      AdManagerInterstitialAd.load(
+        adUnitId: AdConfig.interstitialAdId,
+        request: AdManagerAdRequest(),
+        adLoadCallback: AdManagerInterstitialAdLoadCallback(
+          onAdLoaded: onLoaded,
+          onAdFailedToLoad: onFailed,
+        ),
+      );
+    } else {
+      InterstitialAd.load(
+        adUnitId: AdConfig.interstitialAdId,
+        request: const AdRequest(),
+        adLoadCallback: InterstitialAdLoadCallback(
+          onAdLoaded: onLoaded,
+          onAdFailedToLoad: onFailed,
+        ),
+      );
+    }
   }
 
   /// Force reload interstitial ads pool
@@ -563,21 +601,32 @@ class AdService extends GetxService {
     // Immediately ensure pool is topped up
     _ensureInterstitialAdsPool();
 
-    ad.fullScreenContentCallback = FullScreenContentCallback(
-      onAdDismissedFullScreenContent: (ad) {
-        ad.dispose();
-        onAdClosed?.call();
-        _ensureInterstitialAdsPool();
-      },
-      onAdFailedToShowFullScreenContent: (ad, error) {
-        ad.dispose();
-        debugPrint('AdService: Interstitial ad failed to show: ${error.message}');
-        onAdFailed?.call(error.message);
-        _ensureInterstitialAdsPool();
-      },
-    );
+    void onDismissed(Ad a) {
+      a.dispose();
+      onAdClosed?.call();
+      _ensureInterstitialAdsPool();
+    }
 
-    ad.show();
+    void onShowFailed(Ad a, AdError error) {
+      a.dispose();
+      debugPrint('AdService: Interstitial ad failed to show: ${error.message}');
+      onAdFailed?.call(error.message);
+      _ensureInterstitialAdsPool();
+    }
+
+    if (ad is AdManagerInterstitialAd) {
+      ad.fullScreenContentCallback = FullScreenContentCallback<AdManagerInterstitialAd>(
+        onAdDismissedFullScreenContent: onDismissed,
+        onAdFailedToShowFullScreenContent: onShowFailed,
+      );
+      ad.show();
+    } else if (ad is InterstitialAd) {
+      ad.fullScreenContentCallback = FullScreenContentCallback<InterstitialAd>(
+        onAdDismissedFullScreenContent: onDismissed,
+        onAdFailedToShowFullScreenContent: onShowFailed,
+      );
+      ad.show();
+    }
     _lastInterstitialTime = DateTime.now();
 
     if (_interstitialAds.isEmpty) {
@@ -634,7 +683,7 @@ class AdService extends GetxService {
 
     RewardedAd.load(
       adUnitId: AdConfig.rewardedAdId,
-      request: const AdRequest(),
+      request: _isAdx ? AdManagerAdRequest() : const AdRequest(),
       rewardedAdLoadCallback: RewardedAdLoadCallback(
         onAdLoaded: (ad) {
           _isLoadingRewardedAd = false;
@@ -792,7 +841,7 @@ class AdService extends GetxService {
 
     AppOpenAd.load(
       adUnitId: AdConfig.appOpenAdId,
-      request: const AdRequest(),
+      request: _isAdx ? AdManagerAdRequest() : const AdRequest(),
       adLoadCallback: AppOpenAdLoadCallback(
         onAdLoaded: (ad) {
           _appOpenAd = ad;

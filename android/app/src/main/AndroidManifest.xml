@@ -79,10 +79,11 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
-        <!-- AdMob App ID - ChartSense AI -->
+        <!-- AdX (Google Ad Manager) App ID - ChartSense AI -->
+        <!-- Switched from AdMob (ca-app-pub-5601247182612981~3175984056) to AdX -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-5601247182612981~3175984056" />
+            android:value="ca-app-pub-7664893030317051~3785985150" />
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

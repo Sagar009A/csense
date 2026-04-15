@@ -19,7 +19,8 @@ class BannerAdWidget extends StatefulWidget {
 }
 
 class _BannerAdWidgetState extends State<BannerAdWidget> {
-  BannerAd? _bannerAd;
+  Ad? _bannerAd;
+  AdSize _loadedSize = AdSize.banner;
   bool _isLoaded = false;
   bool _isLoading = true;
   bool _adLoadStarted = false;
@@ -80,38 +81,48 @@ class _BannerAdWidgetState extends State<BannerAdWidget> {
       return;
     }
 
-    _bannerAd = BannerAd(
-      adUnitId: AdConfig.bannerAdId,
-      size: AdSize.banner,
-      request: const AdRequest(),
-      listener: BannerAdListener(
-        onAdLoaded: (ad) {
-          debugPrint('BannerAdWidget: Banner ad loaded successfully');
-          if (mounted) {
-            setState(() {
-              _isLoaded = true;
-              _isLoading = false;
-            });
-          }
-        },
-        onAdFailedToLoad: (ad, error) {
-          debugPrint(
-            'BannerAdWidget: Banner ad failed to load - ${error.message} (code: ${error.code})',
-          );
-          ad.dispose();
-          _bannerAd = null;
-          if (mounted) {
-            setState(() => _isLoading = false);
-          }
-        },
-        onAdClicked: (ad) {
-          debugPrint('BannerAdWidget: Banner ad clicked');
-        },
-        onAdImpression: (ad) {
-          debugPrint('BannerAdWidget: Banner ad impression');
-        },
-      ),
-    );
+    _loadedSize = AdSize.banner;
+
+    void onLoaded(Ad ad) {
+      debugPrint('BannerAdWidget: Banner ad loaded successfully');
+      if (mounted) {
+        setState(() {
+          _isLoaded = true;
+          _isLoading = false;
+        });
+      }
+    }
+
+    void onFailed(Ad ad, LoadAdError error) {
+      debugPrint('BannerAdWidget: Banner ad failed to load - ${error.message} (code: ${error.code})');
+      ad.dispose();
+      _bannerAd = null;
+      if (mounted) setState(() => _isLoading = false);
+    }
+
+    if (AdConfig.adNetwork == 'adx') {
+      _bannerAd = AdManagerBannerAd(
+        adUnitId: AdConfig.bannerAdId,
+        sizes: [AdSize.banner],
+        request: AdManagerAdRequest(),
+        listener: AdManagerBannerAdListener(
+          onAdLoaded: onLoaded,
+          onAdFailedToLoad: onFailed,
+        ),
+      );
+    } else {
+      _bannerAd = BannerAd(
+        adUnitId: AdConfig.bannerAdId,
+        size: AdSize.banner,
+        request: const AdRequest(),
+        listener: BannerAdListener(
+          onAdLoaded: onLoaded,
+          onAdFailedToLoad: onFailed,
+          onAdClicked: (_) => debugPrint('BannerAdWidget: Banner ad clicked'),
+          onAdImpression: (_) => debugPrint('BannerAdWidget: Banner ad impression'),
+        ),
+      );
+    }
 
     _bannerAd!.load();
   }
@@ -141,8 +152,8 @@ class _BannerAdWidgetState extends State<BannerAdWidget> {
     }
 
     return Container(
-      width: _bannerAd!.size.width.toDouble(),
-      height: _bannerAd!.size.height.toDouble(),
+      width: _loadedSize.width.toDouble(),
+      height: _loadedSize.height.toDouble(),
       alignment: Alignment.center,
       decoration: BoxDecoration(
         color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
